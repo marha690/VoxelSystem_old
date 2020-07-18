@@ -21,38 +21,27 @@ public:
 	//UPROPERTY(EditAnywhere)
 		//TSubclassOf<AActor> ActorToSpawn;
 	int _maxNumbeOfVoxels = 0;
-	int _currentNumberOfVoxels = 0;
 
 	AChunk();
-
 	void BuildChunk(int32 sizeXY, int32 sizeZ);
-
-	// Called actor is dragged/spawned in the world.
 	virtual void PostActorCreated() override;
 
-	//Level opened.
 protected:
-	virtual void PostLoad() override;
-
-	/* The vertices of the mesh */
+	/* The data for the mesh for the chunk.*/
 	TArray<FVector> Vertices;
-
-	/* The triangles of the mesh */
 	TArray<int32> Triangles;
-
 	TArray<FLinearColor> VertexColors;
-
-
-	virtual void BeginPlay() override;
-
 	AShapes* voxels;
+
+	int SizeXY;
+	int SizeZ;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		UProceduralMeshComponent* CustomMesh;
 
-
+	virtual void PostLoad() override;
+	virtual void BeginPlay() override;
 	void RenderChunk();
-
+	bool hasSolidNeighbour(int x, int y, int z);
 public:
-	// Called every frame
 };

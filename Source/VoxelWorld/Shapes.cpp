@@ -3,36 +3,32 @@
 
 #include "Shapes.h"
 
-
+//Constructors
 AShapes::AShapes()
-	: bType(BlockType::STONE), indexInChunk(FVector(0.f, 0.f, 0.f))
-{
-}
-
+	: bType(BlockType::AIR), indexInChunk(FVector(0.f, 0.f, 0.f)), isSolid(false) {}
 
 AShapes::AShapes(BlockType b, FVector pos, int index)
 	: bType(b), indexInChunk(pos), listIndex(index)
 {
+	if (b == AIR) {
+		isSolid = false;
+	} else {
+		isSolid = true;
+	}
 }
 
-void AShapes::AddTriangle(int32 V1, int32 V2, int32 V3, TArray<int32>* triangles)
-{
-	triangles->Add(V1);
-	triangles->Add(V2);
-	triangles->Add(V3);
-}
-
+//Public functions
 void AShapes::GenerateCubeMesh(TArray<FVector>* vertices, TArray<FLinearColor>* vertexColors)
 {
 	//Vertices
-	vertices->Add(FVector(-halfSize + indexInChunk.X * voxelSize, -halfSize + indexInChunk.Y * voxelSize, -halfSize + indexInChunk.Z * voxelSize)); //lower left - 0
-	vertices->Add(FVector(-halfSize + indexInChunk.X * voxelSize, -halfSize + indexInChunk.Y * voxelSize, halfSize + indexInChunk.Z * voxelSize)); //upper left - 1
-	vertices->Add(FVector(-halfSize + indexInChunk.X * voxelSize, halfSize + indexInChunk.Y * voxelSize, -halfSize + indexInChunk.Z * voxelSize)); //lower right - 2 
-	vertices->Add(FVector(-halfSize + indexInChunk.X * voxelSize, halfSize + indexInChunk.Y * voxelSize, halfSize + indexInChunk.Z * voxelSize)); //upper right - 3
-	vertices->Add(FVector(halfSize + indexInChunk.X * voxelSize, -halfSize + indexInChunk.Y * voxelSize, -halfSize + indexInChunk.Z * voxelSize)); //lower front left - 4
-	vertices->Add(FVector(halfSize + indexInChunk.X * voxelSize, -halfSize + indexInChunk.Y * voxelSize, halfSize + indexInChunk.Z * voxelSize)); //upper front left - 5
-	vertices->Add(FVector(halfSize + indexInChunk.X * voxelSize, halfSize + indexInChunk.Y * voxelSize, halfSize + indexInChunk.Z * voxelSize)); //upper front right - 6
-	vertices->Add(FVector(halfSize + indexInChunk.X * voxelSize, halfSize + indexInChunk.Y * voxelSize, -halfSize + indexInChunk.Z * voxelSize)); //lower front right - 7
+	vertices->Add(FVector(0 + indexInChunk.X * voxelSize, 0 + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize)); //lower left - 0
+	vertices->Add(FVector(0 + indexInChunk.X * voxelSize, 0 + indexInChunk.Y * voxelSize, voxelSize + indexInChunk.Z * voxelSize)); //upper left - 1
+	vertices->Add(FVector(0 + indexInChunk.X * voxelSize, voxelSize + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize)); //lower right - 2 
+	vertices->Add(FVector(0 + indexInChunk.X * voxelSize, voxelSize + indexInChunk.Y * voxelSize, voxelSize + indexInChunk.Z * voxelSize)); //upper right - 3
+	vertices->Add(FVector(voxelSize + indexInChunk.X * voxelSize, -0 + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize)); //lower front left - 4
+	vertices->Add(FVector(voxelSize + indexInChunk.X * voxelSize, 0 + indexInChunk.Y * voxelSize, voxelSize + indexInChunk.Z * voxelSize)); //upper front left - 5
+	vertices->Add(FVector(voxelSize + indexInChunk.X * voxelSize, voxelSize + indexInChunk.Y * voxelSize, voxelSize + indexInChunk.Z * voxelSize)); //upper front right - 6
+	vertices->Add(FVector(voxelSize + indexInChunk.X * voxelSize, voxelSize + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize)); //lower front right - 7
 
 	//Vertex color
 	vertexColors->Add(FLinearColor(0.f, 0.f, 1.f));
@@ -43,16 +39,6 @@ void AShapes::GenerateCubeMesh(TArray<FVector>* vertices, TArray<FLinearColor>* 
 	vertexColors->Add(FLinearColor(0.f, 1.f, 0.f));
 	vertexColors->Add(FLinearColor(1.f, 1.f, 0.f));
 	vertexColors->Add(FLinearColor(0.f, 1.f, 1.f));
-}
-
-void AShapes::Draw(TArray<int32>* triangles)
-{
-	CreateQuad(Cubeside::BACK, triangles);
-	CreateQuad(Cubeside::FRONT,triangles);
-	CreateQuad(Cubeside::LEFT, triangles);
-	CreateQuad(Cubeside::RIGHT, triangles);
-	CreateQuad(Cubeside::TOP, triangles);
-	CreateQuad(Cubeside::BOTTOM, triangles);
 }
 
 void AShapes::CreateQuad(Cubeside side, TArray<int32> *triangles)
@@ -90,4 +76,22 @@ void AShapes::CreateQuad(Cubeside side, TArray<int32> *triangles)
 		AddTriangle(3 + listIndex * 8, 1 + listIndex * 8, 0 + listIndex * 8, triangles);
 		break;
 	}
+}
+
+//Private functions
+void AShapes::AddTriangle(int32 V1, int32 V2, int32 V3, TArray<int32>* triangles)
+{
+	triangles->Add(V1);
+	triangles->Add(V2);
+	triangles->Add(V3);
+}
+
+void AShapes::Draw(TArray<int32>* triangles)
+{
+	CreateQuad(Cubeside::BACK, triangles);
+	CreateQuad(Cubeside::FRONT,triangles);
+	CreateQuad(Cubeside::LEFT, triangles);
+	CreateQuad(Cubeside::RIGHT, triangles);
+	CreateQuad(Cubeside::TOP, triangles);
+	CreateQuad(Cubeside::BOTTOM, triangles);
 }

@@ -73,52 +73,74 @@ void AChunk::BeginPlay()
 
 	//CustomMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VertexColors, TArray<FProcMeshTangent>(), true);
 
-	BuildChunk(10, 10);
+	BuildChunk(5, 5);
 }
-
 
 void AChunk::BuildChunk(int32 sizeXY, int32 sizeZ)
 {
+	SizeXY = sizeXY;
+	SizeZ = sizeZ;
 	_maxNumbeOfVoxels = sizeXY * sizeXY * sizeZ;
 	voxels = new AShapes[_maxNumbeOfVoxels];
 	int c = 0;
-	for (int X = -sizeXY*0.5f; X < sizeXY*0.5f; X++)
-	{
-		for (int Y = -sizeXY * 0.5f; Y < sizeXY*0.5f; Y++)
-		{
-			for (int Z = -sizeZ * 0.5f; Z < sizeZ*0.5f; Z++)
-			{
-				FVector index = FVector(X, Y, Z);
-				FRotator rot = FRotator(0, 0, 0);
+	for (int Z = 0; Z < sizeZ; Z++) {
+		for (int Y = 0; Y < sizeXY; Y++) {
+			for (int X = 0; X < sizeXY; X++) {
 				UWorld* WRLD = GetWorld();
-
 				if (GetWorld()) {
-
-					if (Z < 0) {
-
+					FVector index = FVector(X, Y, Z);
 					//auto v = (AVoxel*)GetWorld()->SpawnActor(AVoxel::StaticClass(), &pos, &rot);
+
+					if (Y < 2 && X < 2 && Z == 2) {
+					voxels[c] = AShapes(AShapes::AIR, index, c);
+					}
+					else {
 					voxels[c] = AShapes(AShapes::STONE, index, c);
-					voxels[c].GenerateCubeMesh(&Vertices, &VertexColors);
-					//voxels[c].Draw(&Triangles);
-					_currentNumberOfVoxels++;
-					c++;
 					}
 
+					voxels[c].GenerateCubeMesh(&Vertices, &VertexColors);
+					c++;
 				}
 				//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, pos.ToString());
 			}
 		}
 	}
-
 	RenderChunk();
 }
 
 void AChunk::RenderChunk()
 {
-	for (size_t i = 0; i < _currentNumberOfVoxels; i++)
+	for (size_t i = 0; i < _maxNumbeOfVoxels; i++)
 	{
-		voxels[i].Draw(&Triangles);
+		if (voxels[i].isSolid) {
+			auto& voxelPos = voxels[i].indexInChunk;
+			if (!hasSolidNeighbour(voxelPos.X - 1, voxelPos.Y, voxelPos.Z))
+				voxels[i].CreateQuad(AShapes::BACK, &Triangles);
+			if (!hasSolidNeighbour(voxelPos.X + 1, voxelPos.Y, voxelPos.Z))
+				voxels[i].CreateQuad(AShapes::FRONT, &Triangles);
+			if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y - 1, voxelPos.Z))
+				voxels[i].CreateQuad(AShapes::LEFT, &Triangles);
+			if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y + 1, voxelPos.Z))
+				voxels[i].CreateQuad(AShapes::RIGHT, &Triangles);
+			if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y, voxelPos.Z + 1))
+				voxels[i].CreateQuad(AShapes::TOP, &Triangles);
+			if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y, voxelPos.Z - 1))
+				voxels[i].CreateQuad(AShapes::BOTTOM, &Triangles);
+		}
+	}
+	CustomMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VertexColors, TArray<FProcMeshTangent>(), true);
+}
+
+bool AChunk::hasSolidNeighbour(int x, int y, int z)
+{
+	int yMult = SizeXY;
+	int zMult = SizeXY * SizeXY;
+
+	if (x < 0 || x > SizeXY - 1 || y < 0 || y > SizeXY - 1 || z < 0 || z > SizeZ - 1) {
+		return false; //outside of the chunk.
 	}
 
-	CustomMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VertexColors, TArray<FProcMeshTangent>(), true);
+	int listIndexValue = x + y * yMult + z * zMult;
+	auto& neighbouringVoxel = voxels[listIndexValue];
+	return neighbouringVoxel.isSolid;
 }
