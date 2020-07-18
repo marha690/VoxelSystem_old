@@ -2,13 +2,18 @@
 
 
 #include "Chunk.h"
-
 #include "Engine/World.h"
-
 #include "Voxel.h"
+#include "Shapes.h"
 
 AChunk::AChunk()
 {
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+	CustomMesh = CreateDefaultSubobject<UProceduralMeshComponent>("CustomMesh");
+	SetRootComponent(CustomMesh);
+	CustomMesh->bUseAsyncCooking = true;
 }
 
 
@@ -28,7 +33,6 @@ void AChunk::PostActorCreated()
 
 	//	auto v = (AVoxel *) GetWorld()->SpawnActor(AVoxel::StaticClass(), &pos1, &rot);
 	//}
-
 }
 
 
@@ -45,24 +49,29 @@ void AChunk::PostLoad()
 
 	//	auto v = (AVoxel*)GetWorld()->SpawnActor(AVoxel::StaticClass(), &pos1, &rot);
 	//}
-
 }
 
 void AChunk::BeginPlay()
 {
 	Super::BeginPlay();
 	//BuildChunk(1, 1);
-	FVector pos = FVector(1, 1, 300);
+	FVector pos = FVector(1, 1, 1);
 	FVector pos1 = FVector(1, 1, 0);
 	FRotator rot = FRotator(0, 0, 0);
 	UWorld* WRLD = GetWorld();
 
-	GEngine->AddOnScreenDebugMessage(-1, -1, FColor::Red, TEXT("Actor Spawning"));
 	if (GetWorld()) {
 
 		//auto s = GetWorld()->SpawnActor(ActorToSpawn, &pos, &rot);
-		auto v = (AVoxel*)GetWorld()->SpawnActor(AVoxel::StaticClass(), &pos, &rot);
+		//auto v = (AVoxel*)GetWorld()->SpawnActor(AVoxel::StaticClass(), &pos, &rot);
+
 	}
+
+	//AShapes A = AShapes(AShapes::STONE, pos, 0);
+	//A.GenerateCubeMesh(&Vertices, &VertexColors);
+	//A.Draw(&Triangles);
+
+	//CustomMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VertexColors, TArray<FProcMeshTangent>(), true);
 
 	BuildChunk(10, 10);
 }
@@ -70,22 +79,46 @@ void AChunk::BeginPlay()
 
 void AChunk::BuildChunk(int32 sizeXY, int32 sizeZ)
 {
-	for (int X = 0; X < sizeXY; X++)
+	_maxNumbeOfVoxels = sizeXY * sizeXY * sizeZ;
+	voxels = new AShapes[_maxNumbeOfVoxels];
+	int c = 0;
+	for (int X = -sizeXY*0.5f; X < sizeXY*0.5f; X++)
 	{
-		for (int Y = 0; Y < sizeXY; Y++)
+		for (int Y = -sizeXY * 0.5f; Y < sizeXY*0.5f; Y++)
 		{
-			for (int Z = 0; Z < sizeZ; Z++)
+			for (int Z = -sizeZ * 0.5f; Z < sizeZ*0.5f; Z++)
 			{
-				FVector pos = FVector(X * 200, Y * 200, Z * 200);
+				FVector index = FVector(X, Y, Z);
 				FRotator rot = FRotator(0, 0, 0);
 				UWorld* WRLD = GetWorld();
 
 				if (GetWorld()) {
 
-					auto v = (AVoxel*)GetWorld()->SpawnActor(AVoxel::StaticClass(), &pos, &rot);
+					if (Z < 0) {
+
+					//auto v = (AVoxel*)GetWorld()->SpawnActor(AVoxel::StaticClass(), &pos, &rot);
+					voxels[c] = AShapes(AShapes::STONE, index, c);
+					voxels[c].GenerateCubeMesh(&Vertices, &VertexColors);
+					//voxels[c].Draw(&Triangles);
+					_currentNumberOfVoxels++;
+					c++;
+					}
+
 				}
+				//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, pos.ToString());
 			}
 		}
 	}
+
+	RenderChunk();
 }
 
+void AChunk::RenderChunk()
+{
+	for (size_t i = 0; i < _currentNumberOfVoxels; i++)
+	{
+		voxels[i].Draw(&Triangles);
+	}
+
+	CustomMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VertexColors, TArray<FProcMeshTangent>(), true);
+}

@@ -3,9 +3,10 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "ProceduralMeshComponent.h"
 #include "Chunk.generated.h"
 
-
+class AShapes;
 
 /**
  * 
@@ -19,6 +20,8 @@ public:
 
 	//UPROPERTY(EditAnywhere)
 		//TSubclassOf<AActor> ActorToSpawn;
+	int _maxNumbeOfVoxels = 0;
+	int _currentNumberOfVoxels = 0;
 
 	AChunk();
 
@@ -31,12 +34,25 @@ public:
 protected:
 	virtual void PostLoad() override;
 
+	/* The vertices of the mesh */
+	TArray<FVector> Vertices;
+
+	/* The triangles of the mesh */
+	TArray<int32> Triangles;
+
+	TArray<FLinearColor> VertexColors;
+
 
 	virtual void BeginPlay() override;
 
+	AShapes* voxels;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		UProceduralMeshComponent* CustomMesh;
+
+
+	void RenderChunk();
+
 public:
 	// Called every frame
-
-		
-
 };
