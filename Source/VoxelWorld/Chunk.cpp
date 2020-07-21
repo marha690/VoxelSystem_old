@@ -3,7 +3,8 @@
 
 #include "Chunk.h"
 #include "Engine/World.h"
-#include "Shapes.h"
+#include "Voxel.h"
+#include "FastNoise.h"
 #include "WorldGenerator.h"
 
 AChunk::AChunk()
@@ -28,7 +29,7 @@ void AChunk::Initialize(FVector cIndex, int sizeXY, int sizeZ, AWorldGenerator*_
 void AChunk::BuildChunk()
 {
 	_maxNumbeOfVoxels = SizeXY * SizeXY * SizeZ;
-	voxels = new AShapes[_maxNumbeOfVoxels];
+	voxels = new AVoxel[_maxNumbeOfVoxels];
 	int c = 0;
 	for (int Z = 0; Z < SizeZ; Z++) {
 		for (int Y = 0; Y < SizeXY; Y++) {
@@ -36,11 +37,19 @@ void AChunk::BuildChunk()
 				UWorld* WRLD = GetWorld();
 				if (GetWorld()) {
 					FVector index = FVector(X, Y, Z);
-					if (Y < 2 && X < 2 && Z == 2) {
-					voxels[c] = AShapes(AShapes::AIR, index, c);
+					FVector worldIndex = index + chunkIndex * FVector(SizeXY, SizeXY, SizeZ);
+
+					FastNoise f(23);
+					f.SetInterp(FastNoise::Interp::Linear);
+
+					float adjust = 2.0f;
+					auto val = abs( f.GetPerlin(worldIndex.X* adjust, worldIndex.Y * adjust)) * 16.0;
+
+					if (worldIndex.Z > val) {
+						voxels[c] = AVoxel(AVoxel::AIR, index, c);
 					}
 					else {
-					voxels[c] = AShapes(AShapes::STONE, index, c);
+						voxels[c] = AVoxel(AVoxel::STONE, index, c);
 					}
 
 					voxels[c].GenerateCubeMesh(&Vertices, &VertexColors);
@@ -59,17 +68,17 @@ void AChunk::RenderChunk()
 
 		auto& voxelPos = voxels[i].indexInChunk;
 		if (!hasSolidNeighbour(voxelPos.X - 1, voxelPos.Y, voxelPos.Z))
-			voxels[i].CreateQuad(AShapes::BACK, &Triangles);
+			voxels[i].CreateQuad(AVoxel::BACK, &Triangles);
 		if (!hasSolidNeighbour(voxelPos.X + 1, voxelPos.Y, voxelPos.Z))
-			voxels[i].CreateQuad(AShapes::FRONT, &Triangles);
+			voxels[i].CreateQuad(AVoxel::FRONT, &Triangles);
 		if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y - 1, voxelPos.Z))
-			voxels[i].CreateQuad(AShapes::LEFT, &Triangles);
+			voxels[i].CreateQuad(AVoxel::LEFT, &Triangles);
 		if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y + 1, voxelPos.Z))
-			voxels[i].CreateQuad(AShapes::RIGHT, &Triangles);
+			voxels[i].CreateQuad(AVoxel::RIGHT, &Triangles);
 		if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y, voxelPos.Z + 1))
-			voxels[i].CreateQuad(AShapes::TOP, &Triangles);
+			voxels[i].CreateQuad(AVoxel::TOP, &Triangles);
 		if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y, voxelPos.Z - 1))
-			voxels[i].CreateQuad(AShapes::BOTTOM, &Triangles);
+			voxels[i].CreateQuad(AVoxel::BOTTOM, &Triangles);
 	}
 	CustomMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VertexColors, TArray<FProcMeshTangent>(), true);
 }

@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Chunk.h"
-#include "Shapes.h"
+#include "Voxel.h"
 #include "WorldGenerator.generated.h"
 
 
@@ -18,11 +18,11 @@ public:
 	// Sets default values for this actor's properties
 	AWorldGenerator();
 
-	static const int chunksXY = 2;
+	static const int chunksXY = 20;
 
 	static const int voxelsInChunkXY = 6;
-	static const int voxelsInChunkZ = 6;
-	static const int chunkSize = AShapes::voxelSize * voxelsInChunkXY;
+	static const int voxelsInChunkZ = 10;
+	static const int chunkSize = AVoxel::voxelSize * voxelsInChunkXY;
 	TArray<class AChunk*> chunks;
 
 protected:

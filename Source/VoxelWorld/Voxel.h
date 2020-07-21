@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 
 
-class VOXELWORLD_API AShapes
+class VOXELWORLD_API AVoxel
 {
 
 public:
@@ -15,10 +15,10 @@ public:
 		STONE,
 		GRASS
 	};
-	static const int32 voxelSize = 200;
+	static const int32 voxelSize = 50;
 
-	AShapes();
-	AShapes(BlockType b, FVector pos, int index);
+	AVoxel();
+	AVoxel(BlockType b, FVector pos, int index);
 
 	//Properites for the voxel.
 	BlockType bType;

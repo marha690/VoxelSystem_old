@@ -6,7 +6,7 @@
 #include "ProceduralMeshComponent.h"
 #include "Chunk.generated.h"
 
-class AShapes;
+class AVoxel;
 class AWorldGenerator;
 
 /**
@@ -29,7 +29,7 @@ protected:
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;
 	TArray<FLinearColor> VertexColors;
-	AShapes* voxels;
+	AVoxel* voxels;
 	AWorldGenerator* world;
 
 	FVector chunkIndex;

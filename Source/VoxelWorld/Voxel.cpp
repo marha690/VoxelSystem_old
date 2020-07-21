@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Shapes.h"
+#include "Voxel.h"
 
-AShapes::AShapes()
+AVoxel::AVoxel()
 	: bType(BlockType::AIR), indexInChunk(FVector(0.f, 0.f, 0.f)), isSolid(false) {}
 
-AShapes::AShapes(BlockType b, FVector pos, int index)
+AVoxel::AVoxel(BlockType b, FVector pos, int index)
 	: bType(b), indexInChunk(pos), listIndex(index)
 {
 	if (b == AIR) {
@@ -16,7 +16,7 @@ AShapes::AShapes(BlockType b, FVector pos, int index)
 	}
 }
 
-void AShapes::GenerateCubeMesh(TArray<FVector>* vertices, TArray<FLinearColor>* vertexColors)
+void AVoxel::GenerateCubeMesh(TArray<FVector>* vertices, TArray<FLinearColor>* vertexColors)
 {
 	//Vertices
 	vertices->Add(FVector(0 + indexInChunk.X * voxelSize, 0 + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize)); //lower left - 0
@@ -39,7 +39,7 @@ void AShapes::GenerateCubeMesh(TArray<FVector>* vertices, TArray<FLinearColor>* 
 	vertexColors->Add(FLinearColor(0.f, 1.f, 1.f));
 }
 
-void AShapes::CreateQuad(Cubeside side, TArray<int32> *triangles)
+void AVoxel::CreateQuad(Cubeside side, TArray<int32> *triangles)
 {
 	switch (side)
 	{
@@ -76,7 +76,7 @@ void AShapes::CreateQuad(Cubeside side, TArray<int32> *triangles)
 	}
 }
 
-void AShapes::AddTriangle(int32 V1, int32 V2, int32 V3, TArray<int32>* triangles)
+void AVoxel::AddTriangle(int32 V1, int32 V2, int32 V3, TArray<int32>* triangles)
 {
 	triangles->Add(V1);
 	triangles->Add(V2);
