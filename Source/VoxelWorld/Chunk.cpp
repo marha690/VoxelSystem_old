@@ -3,9 +3,8 @@
 
 #include "Chunk.h"
 #include "Engine/World.h"
-#include "Voxel.h"
 #include "Shapes.h"
-#include "testActor.h"
+#include "WorldGenerator.h"
 
 AChunk::AChunk()
 {
@@ -17,31 +16,13 @@ AChunk::AChunk()
 	CustomMesh->bUseAsyncCooking = true;
 }
 
-void AChunk::Initialize(FVector cIndex, int sizeXY, int sizeZ, AtestActor *_world)
+void AChunk::Initialize(FVector cIndex, int sizeXY, int sizeZ, AWorldGenerator*_world)
 {
 	chunkIndex = cIndex;
 	SizeXY = sizeXY;
 	SizeZ = sizeZ;
 	world = _world;
 	BuildChunk();
-}
-
-
-void AChunk::PostActorCreated() 
-{
-	Super::PostActorCreated();
-
-}
-
-void AChunk::PostLoad()
-{
-	Super::PostLoad();
-
-}
-
-void AChunk::BeginPlay()
-{
-	Super::BeginPlay();
 }
 
 void AChunk::BuildChunk()

@@ -17,7 +17,6 @@ public:
 	};
 	static const int32 voxelSize = 200;
 
-	// Sets default values for this actor's properties
 	AShapes();
 	AShapes(BlockType b, FVector pos, int index);
 
@@ -31,8 +30,4 @@ public:
 	void CreateQuad(Cubeside side, TArray<int32>* triangles);
 protected:
 	void AddTriangle(int32 V1, int32 V2, int32 V3, TArray<int32>* triangles);
-
-	//Move these later
-private:
-	void Draw(TArray<int32> *triangles); // No longer in use.
 };

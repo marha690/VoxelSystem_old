@@ -3,7 +3,6 @@
 
 #include "Shapes.h"
 
-//Constructors
 AShapes::AShapes()
 	: bType(BlockType::AIR), indexInChunk(FVector(0.f, 0.f, 0.f)), isSolid(false) {}
 
@@ -17,7 +16,6 @@ AShapes::AShapes(BlockType b, FVector pos, int index)
 	}
 }
 
-//Public functions
 void AShapes::GenerateCubeMesh(TArray<FVector>* vertices, TArray<FLinearColor>* vertexColors)
 {
 	//Vertices
@@ -78,20 +76,9 @@ void AShapes::CreateQuad(Cubeside side, TArray<int32> *triangles)
 	}
 }
 
-//Private functions
 void AShapes::AddTriangle(int32 V1, int32 V2, int32 V3, TArray<int32>* triangles)
 {
 	triangles->Add(V1);
 	triangles->Add(V2);
 	triangles->Add(V3);
-}
-
-void AShapes::Draw(TArray<int32>* triangles)
-{
-	CreateQuad(Cubeside::BACK, triangles);
-	CreateQuad(Cubeside::FRONT,triangles);
-	CreateQuad(Cubeside::LEFT, triangles);
-	CreateQuad(Cubeside::RIGHT, triangles);
-	CreateQuad(Cubeside::TOP, triangles);
-	CreateQuad(Cubeside::BOTTOM, triangles);
 }
