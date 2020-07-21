@@ -15,6 +15,7 @@ public:
 		STONE,
 		GRASS
 	};
+	static const int32 voxelSize = 200;
 
 	// Sets default values for this actor's properties
 	AShapes();
@@ -32,8 +33,6 @@ protected:
 	void AddTriangle(int32 V1, int32 V2, int32 V3, TArray<int32>* triangles);
 
 	//Move these later
-	int32 voxelSize = 200;
-	int32 halfSize = voxelSize / 2;
 private:
 	void Draw(TArray<int32> *triangles); // No longer in use.
 };

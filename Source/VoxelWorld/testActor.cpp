@@ -2,6 +2,7 @@
 
 
 #include "testActor.h"
+#include "Chunk.h"
 
 // Sets default values
 AtestActor::AtestActor()
@@ -15,8 +16,35 @@ AtestActor::AtestActor()
 void AtestActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	MakeTestChunkCube();
 }
+
+void AtestActor::MakeTestChunkCube()
+{
+	FRotator rot = FRotator(0, 0, 0);
+
+	UWorld* WRLD = GetWorld();
+	if (GetWorld()) {
+		for (size_t x = 0; x < chunksXY; x++) {
+			for (size_t y = 0; y < chunksXY; y++) {
+				FVector pos = FVector(x * chunkSize, y * chunkSize, 0);
+				FVector index = FVector(x, y, 0);
+				auto v = (AChunk*)GetWorld()->SpawnActor(AChunk::StaticClass(), &pos, &rot);
+				v->Initialize(index, voxelsInChunkXY, voxelsInChunkZ, this);
+				chunks.Add(v);
+			}
+		}
+	}
+
+	for (auto c : chunks) {
+		c->RenderChunk();
+	}
+
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0, FColor::Red, TEXT("Actor Spawning"));
+	//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, pos.ToString());
+}
+
+
 
 // Called every frame
 void AtestActor::Tick(float DeltaTime)

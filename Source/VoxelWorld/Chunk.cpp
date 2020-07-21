@@ -5,6 +5,7 @@
 #include "Engine/World.h"
 #include "Voxel.h"
 #include "Shapes.h"
+#include "testActor.h"
 
 AChunk::AChunk()
 {
@@ -16,81 +17,44 @@ AChunk::AChunk()
 	CustomMesh->bUseAsyncCooking = true;
 }
 
+void AChunk::Initialize(FVector cIndex, int sizeXY, int sizeZ, AtestActor *_world)
+{
+	chunkIndex = cIndex;
+	SizeXY = sizeXY;
+	SizeZ = sizeZ;
+	world = _world;
+	BuildChunk();
+}
+
 
 void AChunk::PostActorCreated() 
 {
 	Super::PostActorCreated();
 
-	//FVector pos = FVector(1, 1, 300);
-	//FVector pos1 = FVector(1, 1, 0);
-	//FRotator rot = FRotator(0, 0, 0);
-	//UWorld* WRLD = GetWorld();
-
-	//if (GetWorld()) {
-	//	GEngine->AddOnScreenDebugMessage(-1, -1, FColor::Red, TEXT("Actor Spawning"));
-
-	//	auto s = GetWorld()->SpawnActor(ActorToSpawn, &pos, &rot);
-
-	//	auto v = (AVoxel *) GetWorld()->SpawnActor(AVoxel::StaticClass(), &pos1, &rot);
-	//}
 }
-
 
 void AChunk::PostLoad()
 {
 	Super::PostLoad();
 
-	//FVector pos = FVector(1, 1, 300);
-	//FVector pos1 = FVector(1, 1, 0);
-	//FRotator rot = FRotator(0, 0, 0);
-	//UWorld* WRLD = GetWorld();
-
-	//if (GetWorld()) {
-
-	//	auto v = (AVoxel*)GetWorld()->SpawnActor(AVoxel::StaticClass(), &pos1, &rot);
-	//}
 }
 
 void AChunk::BeginPlay()
 {
 	Super::BeginPlay();
-	//BuildChunk(1, 1);
-	FVector pos = FVector(1, 1, 1);
-	FVector pos1 = FVector(1, 1, 0);
-	FRotator rot = FRotator(0, 0, 0);
-	UWorld* WRLD = GetWorld();
-
-	if (GetWorld()) {
-
-		//auto s = GetWorld()->SpawnActor(ActorToSpawn, &pos, &rot);
-		//auto v = (AVoxel*)GetWorld()->SpawnActor(AVoxel::StaticClass(), &pos, &rot);
-
-	}
-
-	//AShapes A = AShapes(AShapes::STONE, pos, 0);
-	//A.GenerateCubeMesh(&Vertices, &VertexColors);
-	//A.Draw(&Triangles);
-
-	//CustomMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VertexColors, TArray<FProcMeshTangent>(), true);
-
-	BuildChunk(5, 5);
 }
 
-void AChunk::BuildChunk(int32 sizeXY, int32 sizeZ)
+void AChunk::BuildChunk()
 {
-	SizeXY = sizeXY;
-	SizeZ = sizeZ;
-	_maxNumbeOfVoxels = sizeXY * sizeXY * sizeZ;
+	_maxNumbeOfVoxels = SizeXY * SizeXY * SizeZ;
 	voxels = new AShapes[_maxNumbeOfVoxels];
 	int c = 0;
-	for (int Z = 0; Z < sizeZ; Z++) {
-		for (int Y = 0; Y < sizeXY; Y++) {
-			for (int X = 0; X < sizeXY; X++) {
+	for (int Z = 0; Z < SizeZ; Z++) {
+		for (int Y = 0; Y < SizeXY; Y++) {
+			for (int X = 0; X < SizeXY; X++) {
 				UWorld* WRLD = GetWorld();
 				if (GetWorld()) {
 					FVector index = FVector(X, Y, Z);
-					//auto v = (AVoxel*)GetWorld()->SpawnActor(AVoxel::StaticClass(), &pos, &rot);
-
 					if (Y < 2 && X < 2 && Z == 2) {
 					voxels[c] = AShapes(AShapes::AIR, index, c);
 					}
@@ -101,32 +65,30 @@ void AChunk::BuildChunk(int32 sizeXY, int32 sizeZ)
 					voxels[c].GenerateCubeMesh(&Vertices, &VertexColors);
 					c++;
 				}
-				//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, pos.ToString());
 			}
 		}
 	}
-	RenderChunk();
 }
 
 void AChunk::RenderChunk()
 {
 	for (size_t i = 0; i < _maxNumbeOfVoxels; i++)
 	{
-		if (voxels[i].isSolid) {
-			auto& voxelPos = voxels[i].indexInChunk;
-			if (!hasSolidNeighbour(voxelPos.X - 1, voxelPos.Y, voxelPos.Z))
-				voxels[i].CreateQuad(AShapes::BACK, &Triangles);
-			if (!hasSolidNeighbour(voxelPos.X + 1, voxelPos.Y, voxelPos.Z))
-				voxels[i].CreateQuad(AShapes::FRONT, &Triangles);
-			if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y - 1, voxelPos.Z))
-				voxels[i].CreateQuad(AShapes::LEFT, &Triangles);
-			if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y + 1, voxelPos.Z))
-				voxels[i].CreateQuad(AShapes::RIGHT, &Triangles);
-			if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y, voxelPos.Z + 1))
-				voxels[i].CreateQuad(AShapes::TOP, &Triangles);
-			if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y, voxelPos.Z - 1))
-				voxels[i].CreateQuad(AShapes::BOTTOM, &Triangles);
-		}
+		if (!voxels[i].isSolid) continue;
+
+		auto& voxelPos = voxels[i].indexInChunk;
+		if (!hasSolidNeighbour(voxelPos.X - 1, voxelPos.Y, voxelPos.Z))
+			voxels[i].CreateQuad(AShapes::BACK, &Triangles);
+		if (!hasSolidNeighbour(voxelPos.X + 1, voxelPos.Y, voxelPos.Z))
+			voxels[i].CreateQuad(AShapes::FRONT, &Triangles);
+		if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y - 1, voxelPos.Z))
+			voxels[i].CreateQuad(AShapes::LEFT, &Triangles);
+		if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y + 1, voxelPos.Z))
+			voxels[i].CreateQuad(AShapes::RIGHT, &Triangles);
+		if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y, voxelPos.Z + 1))
+			voxels[i].CreateQuad(AShapes::TOP, &Triangles);
+		if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y, voxelPos.Z - 1))
+			voxels[i].CreateQuad(AShapes::BOTTOM, &Triangles);
 	}
 	CustomMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VertexColors, TArray<FProcMeshTangent>(), true);
 }
@@ -136,11 +98,74 @@ bool AChunk::hasSolidNeighbour(int x, int y, int z)
 	int yMult = SizeXY;
 	int zMult = SizeXY * SizeXY;
 
-	if (x < 0 || x > SizeXY - 1 || y < 0 || y > SizeXY - 1 || z < 0 || z > SizeZ - 1) {
-		return false; //outside of the chunk.
+	FVector chunkOffset = FVector(0, 0, 0);
+	if (x < 0) {
+		chunkOffset -= FVector(1, 0, 0);
+		x = ConvertVoxelToLocalXY(x);
+	}
+	else if (x > SizeXY - 1) {
+		chunkOffset += FVector(1, 0, 0);
+		x = ConvertVoxelToLocalXY(x);
 	}
 
-	int listIndexValue = x + y * yMult + z * zMult;
-	auto& neighbouringVoxel = voxels[listIndexValue];
-	return neighbouringVoxel.isSolid;
+	if (y < 0) {
+		chunkOffset -= FVector(0, 1, 0);
+		y = ConvertVoxelToLocalXY(y);
+	}
+	else if (y > SizeXY - 1) {
+		chunkOffset += FVector(0, 1, 0);
+		y = ConvertVoxelToLocalXY(y);
+	}
+
+	if (z < 0) {
+		chunkOffset -= FVector(0, 0, 1);
+		z = ConvertVoxelToLocalZ(z);
+	}
+	else if (z > SizeZ - 1) {
+		chunkOffset += FVector(0, 0, 1);
+		z = ConvertVoxelToLocalZ(z);
+	}
+
+	if (chunkOffset == FVector(0, 0, 0)) {
+		//Inside this chunk.
+		int listIndexValue = x + y * yMult + z * zMult;
+		auto& neighbouringVoxel = voxels[listIndexValue];
+		return neighbouringVoxel.isSolid;
+	}
+	else {
+		//Inside other chunk.
+		for (auto& c : world->chunks) {
+			if (c->chunkIndex == (chunkIndex + chunkOffset)) {
+				int listIndexValue = x + y * yMult + z * zMult;
+				return c->voxels[listIndexValue].isSolid;
+			}
+		}
+		return false; //Outside all read chunks.
+	}
+}
+
+int AChunk::ConvertVoxelToLocalXY(int i)
+{
+	if (i == -1)
+	{
+		i = SizeXY - 1;
+	}
+	else if (i == SizeXY)
+	{
+		i = 0;
+	}
+	return i;
+}
+
+int AChunk::ConvertVoxelToLocalZ(int i)
+{
+	if (i == -1)
+	{
+		i = SizeZ - 1;
+	}
+	else if (i == SizeZ)
+	{
+		i = 0;
+	}
+	return i;
 }

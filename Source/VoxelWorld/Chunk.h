@@ -7,6 +7,7 @@
 #include "Chunk.generated.h"
 
 class AShapes;
+class AtestActor;
 
 /**
  * 
@@ -23,7 +24,10 @@ public:
 	int _maxNumbeOfVoxels = 0;
 
 	AChunk();
-	void BuildChunk(int32 sizeXY, int32 sizeZ);
+	void Initialize(FVector cIndex, int sizeXY, int sizeZ, AtestActor* _world);
+
+	void BuildChunk();
+	void RenderChunk();
 	virtual void PostActorCreated() override;
 
 protected:
@@ -32,7 +36,9 @@ protected:
 	TArray<int32> Triangles;
 	TArray<FLinearColor> VertexColors;
 	AShapes* voxels;
+	AtestActor* world;
 
+	FVector chunkIndex;
 	int SizeXY;
 	int SizeZ;
 
@@ -41,7 +47,8 @@ protected:
 
 	virtual void PostLoad() override;
 	virtual void BeginPlay() override;
-	void RenderChunk();
 	bool hasSolidNeighbour(int x, int y, int z);
+	int ConvertVoxelToLocalXY(int i);
+	int ConvertVoxelToLocalZ(int i);
 public:
 };
