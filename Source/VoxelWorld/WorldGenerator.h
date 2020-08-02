@@ -20,14 +20,16 @@ public:
 
 	UPROPERTY(EditAnywhere)
 		AActor *player;
+	UPROPERTY(EditAnywhere)
+		int renderRadius = 15;
 
-	int renderRadius = 4;
 	static const int voxelsInChunkXYZ = 16;
 	static const int chunkSize = AVoxel::voxelSize * voxelsInChunkXYZ;
 	TArray<class AChunk*> chunks;
 
 	bool isBuilding = false;
 protected:
+	UWorld* WRLD;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

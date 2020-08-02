@@ -15,6 +15,9 @@ AWorldGenerator::AWorldGenerator()
 void AWorldGenerator::BeginPlay()
 {
 	Super::BeginPlay();
+	WRLD = GetWorld();
+	verify(WRLD != nullptr);
+
 	GenerateChunks();
 }
 
@@ -30,40 +33,36 @@ void AWorldGenerator::PostLoad()
 
 void AWorldGenerator::GenerateChunks()
 {
-	isBuilding = true;
-	FRotator rot = FRotator(0, 0, 0);
 	int playerPosX = (int) floor(player->GetTransform().GetLocation().X / chunkSize);
 	int playerPosY = (int) floor(player->GetTransform().GetLocation().Y / chunkSize);
 
-	UWorld* WRLD = GetWorld();
 	// Load chunks and change chunk status.
-	if (WRLD) {
-		for (int x = -renderRadius; x <= renderRadius; x++) {
-			for (int y = -renderRadius; y <= renderRadius; y++) {
+	for (int x = -renderRadius; x <= renderRadius; x++) {
+		for (int y = -renderRadius; y <= renderRadius; y++) {
 
-				FVector pos = FVector((x + playerPosX)*chunkSize, (y + playerPosY) * chunkSize, 0);
-				FVector index = FVector(x + playerPosX, y + playerPosY, 0);
+			FVector index = FVector(x + playerPosX, y + playerPosY, 0);
 
-				auto distance = FVector(index.X - playerPosX, index.Y - playerPosY, 0).Size();
-				if (distance > renderRadius)
-					continue;
+			auto distance = FVector(index.X - playerPosX, index.Y - playerPosY, 0).Size();
+			if (distance > renderRadius)
+				continue;
 
-				// Check if the chunk already is loaded.
-				bool newChunk = true;
-				for (auto c : chunks) {
-					auto chunkIndex = c->chunkIndex;
-					if (index == chunkIndex) {
-						newChunk = false;
-					}
+			// Check if the chunk already is loaded.
+			bool newChunk = true;
+			for (auto c : chunks) {
+				auto chunkIndex = c->chunkIndex;
+				if (index == chunkIndex) {
+					newChunk = false;
 				}
+			}
 
-				// Create new chunk if it does not exist.
-				if (newChunk) {
-					auto v = (AChunk*)GetWorld()->SpawnActor(AChunk::StaticClass(), &pos, &rot);
-					v->Initialize(index, voxelsInChunkXYZ, this);
-					v->SetFolderPath("/Chunks");
-					chunks.Add(v);
-				}
+			// Create new chunk if it does not exist.
+			if (newChunk) {
+				FVector pos = FVector((x + playerPosX) * chunkSize, (y + playerPosY) * chunkSize, 0);
+				FRotator rot = FRotator(0, 0, 0);
+				auto v = (AChunk*)GetWorld()->SpawnActor(AChunk::StaticClass(), &pos, &rot);
+				v->Initialize(index, voxelsInChunkXYZ, this);
+				v->SetFolderPath("/Chunks");
+				chunks.Add(v);
 			}
 		}
 	}
@@ -76,6 +75,7 @@ void AWorldGenerator::GenerateChunks()
 			chunks.Remove(c);
 			c->Destroy();
 			i--;
+			break;
 		}
 	}
 
@@ -84,10 +84,9 @@ void AWorldGenerator::GenerateChunks()
 		if (c->status == AChunk::ChunkStatus::DRAW) {
 			c->RenderChunk();
 			c->status = AChunk::ChunkStatus::DONE;
+			break;
 		}
 	}
-
-	isBuilding = false;
 }
 
 // Called every frame
