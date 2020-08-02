@@ -21,7 +21,7 @@ public:
 	static enum ChunkStatus { DRAW, DONE, KEEP};
 	ChunkStatus status;
 	FVector chunkIndex;
-	int _maxNumberOfVoxels = 0;
+	AVoxel* voxels;
 
 	AChunk();
 	void Initialize(FVector cIndex, int sizeXY, int sizeZ, AWorldGenerator* _world);
@@ -32,8 +32,8 @@ protected:
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;
 	TArray<FLinearColor> VertexColors;
-	AVoxel* voxels;
 	AWorldGenerator* world;
+	int _maxNumberOfVoxels = 0;
 
 	int SizeXY;
 	int SizeZ;
