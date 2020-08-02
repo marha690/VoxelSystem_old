@@ -20,10 +20,8 @@ public:
 
 	UPROPERTY(EditAnywhere)
 		AActor *player;
+
 	int renderRadius = 4;
-
-	static const int chunksXY = 10;
-
 	static const int voxelsInChunkXYZ = 16;
 	static const int chunkSize = AVoxel::voxelSize * voxelsInChunkXYZ;
 	TArray<class AChunk*> chunks;
@@ -39,28 +37,9 @@ protected:
 	void PostLoad() override;
 
 	void GenerateChunks();
-	void DrawAndDestroyChunks();
 
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-};
-
-//=============================================================================
-class ChunkTask : public FNonAbandonableTask
-{
-public:
-	ChunkTask(AWorldGenerator* w);
-
-	FORCEINLINE TStatId GetStatId() const {
-		RETURN_QUICK_DECLARE_CYCLE_STAT(ChunkTask, STATGROUP_ThreadPoolAsyncTasks);
-	}
-
-	void DoWork();
-
-protected:
-	AWorldGenerator* worldG;
-private:
-	friend class AWorldGenerator;
 };

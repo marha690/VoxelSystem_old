@@ -18,30 +18,46 @@ class VOXELWORLD_API AChunk : public AActor
 	GENERATED_BODY()
 
 public:
-	static enum ChunkStatus { DRAW, DONE, KEEP};
+	static enum ChunkStatus { DRAW, DONE, KEEP, GENERATING};
 	ChunkStatus status;
 	FVector chunkIndex;
-	AVoxel* voxels;
 
 	AChunk();
-	void Initialize(FVector cIndex, int sizeXY, int sizeZ, AWorldGenerator* _world);
+	void Initialize(FVector cIndex, int size, AWorldGenerator* _world);
 	void BuildChunk();
 	void RenderChunk();
 
-protected:
+private:
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;
 	TArray<FLinearColor> VertexColors;
-	AWorldGenerator* world;
-	int _maxNumberOfVoxels = 0;
 
-	int SizeXY;
-	int SizeZ;
+	AVoxel* voxels;
+	AWorldGenerator* world;
+
+	int Size;
+	int NumberOfVoxels;
 
 	UProceduralMeshComponent* CustomMesh;
 
 	bool hasSolidNeighbour(int x, int y, int z);
-	int ConvertVoxelToLocalXY(int i);
-	int ConvertVoxelToLocalZ(int i);
+	int ConvertVoxelToLocal(int i);
+	friend class ChunkTask;
+};
+
+/******************
+***	ChunkTask	***
+******************/
+class ChunkTask : public FNonAbandonableTask
+{
 public:
+	ChunkTask(AChunk* c);
+
+	FORCEINLINE TStatId GetStatId() const {
+		RETURN_QUICK_DECLARE_CYCLE_STAT(ChunkTask, STATGROUP_ThreadPoolAsyncTasks);
+	}
+	void DoWork();
+
+private:
+	AChunk* chunk;
 };

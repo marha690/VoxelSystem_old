@@ -17,53 +17,57 @@ AChunk::AChunk()
 	CustomMesh->bUseAsyncCooking = true;
 }
 
-void AChunk::Initialize(FVector cIndex, int sizeXY, int sizeZ, AWorldGenerator*_world)
+void AChunk::Initialize(FVector cIndex, int size, AWorldGenerator*_world)
 {
 	chunkIndex = cIndex;
-	SizeXY = sizeXY;
-	SizeZ = sizeZ;
+	Size = size;
 	world = _world;
-	status = ChunkStatus::DRAW;
+	status = ChunkStatus::GENERATING;
+	NumberOfVoxels = Size * Size * Size;
 	BuildChunk();
 }
 
 void AChunk::BuildChunk()
 {
-	_maxNumberOfVoxels = SizeXY * SizeXY * SizeZ;
-	voxels = new AVoxel[_maxNumberOfVoxels];
-	int c = 0;
-	for (int Z = 0; Z < SizeZ; Z++) {
-		for (int Y = 0; Y < SizeXY; Y++) {
-			for (int X = 0; X < SizeXY; X++) {
-				UWorld* WRLD = GetWorld();
-				if (GetWorld()) {
-					FVector index = FVector(X, Y, Z);
-					FVector worldIndex = index + chunkIndex * FVector(SizeXY, SizeXY, SizeZ);
+	(new FAutoDeleteAsyncTask<ChunkTask>(this))->StartBackgroundTask(); //Thread.
 
-					FastNoise f(23);
-					f.SetInterp(FastNoise::Interp::Linear);
+	/* Use this to make the builing of chunks in the main-loop. */
+	//_maxNumberOfVoxels = SizeXY * SizeXY * SizeZ;
+	//voxels = new AVoxel[_maxNumberOfVoxels];
+	//int c = 0;
+	//for (int Z = 0; Z < SizeZ; Z++) {
+	//	for (int Y = 0; Y < SizeXY; Y++) {
+	//		for (int X = 0; X < SizeXY; X++) {
+	//			UWorld* WRLD = GetWorld();
+	//			if (GetWorld()) {
+	//				FVector index = FVector(X, Y, Z);
+	//				FVector worldIndex = index + chunkIndex * FVector(SizeXY, SizeXY, SizeZ);
 
-					float adjust = 2.0f;
-					auto val = abs( f.GetPerlin(worldIndex.X* adjust, worldIndex.Y * adjust)) * 16.0;
+	//				FastNoise f(23);
+	//				f.SetInterp(FastNoise::Interp::Linear);
 
-					if (worldIndex.Z > val) {
-						voxels[c] = AVoxel(AVoxel::AIR, index, c);
-					}
-					else {
-						voxels[c] = AVoxel(AVoxel::STONE, index, c);
-					}
+	//				float adjust = 2.0f;
+	//				auto val = abs( f.GetPerlin(worldIndex.X* adjust, worldIndex.Y * adjust)) * 16.0;
 
-					voxels[c].GenerateCubeMesh(&Vertices, &VertexColors);
-					c++;
-				}
-			}
-		}
-	}
+	//				if (worldIndex.Z > val) {
+	//					voxels[c] = AVoxel(AVoxel::AIR, index, c);
+	//				}
+	//				else {
+	//					voxels[c] = AVoxel(AVoxel::STONE, index, c);
+	//				}
+
+	//				voxels[c].GenerateCubeMesh(&Vertices, &VertexColors);
+	//				c++;
+	//			}
+	//		}
+	//	}
+	//}
+	//status = ChunkStatus::DRAW;
 }
 
 void AChunk::RenderChunk()
 {
-	for (size_t i = 0; i < _maxNumberOfVoxels; i++)
+	for (size_t i = 0; i < NumberOfVoxels; i++)
 	{
 		if (!voxels[i].isSolid) continue;
 
@@ -86,35 +90,35 @@ void AChunk::RenderChunk()
 
 bool AChunk::hasSolidNeighbour(int x, int y, int z)
 {
-	int yMult = SizeXY;
-	int zMult = SizeXY * SizeXY;
+	int yMult = Size;
+	int zMult = Size * Size;
 
 	FVector chunkOffset = FVector(0, 0, 0);
 	if (x < 0) {
 		chunkOffset -= FVector(1, 0, 0);
-		x = ConvertVoxelToLocalXY(x);
+		x = ConvertVoxelToLocal(x);
 	}
-	else if (x > SizeXY - 1) {
+	else if (x > Size - 1) {
 		chunkOffset += FVector(1, 0, 0);
-		x = ConvertVoxelToLocalXY(x);
+		x = ConvertVoxelToLocal(x);
 	}
 
 	if (y < 0) {
 		chunkOffset -= FVector(0, 1, 0);
-		y = ConvertVoxelToLocalXY(y);
+		y = ConvertVoxelToLocal(y);
 	}
-	else if (y > SizeXY - 1) {
+	else if (y > Size - 1) {
 		chunkOffset += FVector(0, 1, 0);
-		y = ConvertVoxelToLocalXY(y);
+		y = ConvertVoxelToLocal(y);
 	}
 
 	if (z < 0) {
 		chunkOffset -= FVector(0, 0, 1);
-		z = ConvertVoxelToLocalZ(z);
+		z = ConvertVoxelToLocal(z);
 	}
-	else if (z > SizeZ - 1) {
+	else if (z > Size - 1) {
 		chunkOffset += FVector(0, 0, 1);
-		z = ConvertVoxelToLocalZ(z);
+		z = ConvertVoxelToLocal(z);
 	}
 
 	if (chunkOffset == FVector(0, 0, 0)) {
@@ -126,7 +130,7 @@ bool AChunk::hasSolidNeighbour(int x, int y, int z)
 	else {
 		//Inside other chunk.
 		for (auto& c : world->chunks) {
-			if (c->chunkIndex == (chunkIndex + chunkOffset)) {
+			if (c->chunkIndex == (chunkIndex + chunkOffset) && c->status != c->ChunkStatus::GENERATING) {
 				int listIndexValue = x + y * yMult + z * zMult;
 				return c->voxels[listIndexValue].isSolid;
 			}
@@ -135,28 +139,58 @@ bool AChunk::hasSolidNeighbour(int x, int y, int z)
 	}
 }
 
-int AChunk::ConvertVoxelToLocalXY(int i)
+int AChunk::ConvertVoxelToLocal(int i)
 {
 	if (i == -1)
 	{
-		i = SizeXY - 1;
+		i = Size - 1;
 	}
-	else if (i == SizeXY)
+	else if (i == Size)
 	{
 		i = 0;
 	}
 	return i;
 }
 
-int AChunk::ConvertVoxelToLocalZ(int i)
+/******************
+***	ChunkTask	***
+******************/
+ChunkTask::ChunkTask(AChunk* c)
+	: chunk(c) {}
+
+void ChunkTask::DoWork()
 {
-	if (i == -1)
-	{
-		i = SizeZ - 1;
+	int counter = 0;
+	chunk->voxels = new AVoxel[chunk->NumberOfVoxels];
+	//Set all voxels inside the chunk.
+	for (int Z = 0; Z < chunk->Size; Z++) {
+		for (int Y = 0; Y < chunk->Size; Y++) {
+			for (int X = 0; X < chunk->Size; X++) {
+				FVector index = FVector(X, Y, Z);
+				FVector worldIndex = index + chunk->chunkIndex * FVector(chunk->Size, chunk->Size, chunk->Size);
+
+				//MOVE THIS TO OTHER FILE
+				FastNoise f(23);
+				f.SetInterp(FastNoise::Interp::Linear);
+
+				float adjust = 2.0f;
+				auto val = abs(f.GetPerlin(worldIndex.X * adjust, worldIndex.Y * adjust)) * 16.0;
+
+				if (worldIndex.Z > val) {
+					chunk->voxels[counter] = AVoxel(AVoxel::AIR, index, counter);
+				}
+				else {
+					chunk->voxels[counter] = AVoxel(AVoxel::STONE, index, counter);
+				}
+				//END OF MOVE THIS TO OTHER FILE
+
+				chunk->voxels[counter].GenerateCubeMesh(&chunk->Vertices, &chunk->VertexColors);
+				counter++;
+			}
+		}
 	}
-	else if (i == SizeZ)
-	{
-		i = 0;
-	}
-	return i;
+
+	//Update status so that worldGenerator can draw the chunk.
+	chunk->status = chunk->ChunkStatus::DRAW;
 }
+
