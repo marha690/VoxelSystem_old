@@ -23,13 +23,14 @@ void AChunk::Initialize(FVector cIndex, int sizeXY, int sizeZ, AWorldGenerator*_
 	SizeXY = sizeXY;
 	SizeZ = sizeZ;
 	world = _world;
+	status = ChunkStatus::DRAW;
 	BuildChunk();
 }
 
 void AChunk::BuildChunk()
 {
-	_maxNumbeOfVoxels = SizeXY * SizeXY * SizeZ;
-	voxels = new AVoxel[_maxNumbeOfVoxels];
+	_maxNumberOfVoxels = SizeXY * SizeXY * SizeZ;
+	voxels = new AVoxel[_maxNumberOfVoxels];
 	int c = 0;
 	for (int Z = 0; Z < SizeZ; Z++) {
 		for (int Y = 0; Y < SizeXY; Y++) {
@@ -62,7 +63,7 @@ void AChunk::BuildChunk()
 
 void AChunk::RenderChunk()
 {
-	for (size_t i = 0; i < _maxNumbeOfVoxels; i++)
+	for (size_t i = 0; i < _maxNumberOfVoxels; i++)
 	{
 		if (!voxels[i].isSolid) continue;
 

@@ -18,10 +18,14 @@ public:
 	// Sets default values for this actor's properties
 	AWorldGenerator();
 
-	static const int chunksXY = 20;
+	UPROPERTY(EditAnywhere)
+		AActor *player;
+	int renderRadius = 4;
 
-	static const int voxelsInChunkXY = 6;
-	static const int voxelsInChunkZ = 10;
+	static const int chunksXY = 10;
+
+	static const int voxelsInChunkXY = 16;
+	static const int voxelsInChunkZ = 16;
 	static const int chunkSize = AVoxel::voxelSize * voxelsInChunkXY;
 	TArray<class AChunk*> chunks;
 
@@ -34,6 +38,7 @@ protected:
 	void PostLoad() override;
 
 	void MakeTestChunkCube();
+	void UpdateChunksStatus();
 
 public:
 	// Called every frame

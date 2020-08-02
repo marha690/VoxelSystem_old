@@ -18,7 +18,10 @@ class VOXELWORLD_API AChunk : public AActor
 	GENERATED_BODY()
 
 public:
-	int _maxNumbeOfVoxels = 0;
+	static enum ChunkStatus { DRAW, DONE, KEEP};
+	ChunkStatus status;
+	FVector chunkIndex;
+	int _maxNumberOfVoxels = 0;
 
 	AChunk();
 	void Initialize(FVector cIndex, int sizeXY, int sizeZ, AWorldGenerator* _world);
@@ -32,7 +35,6 @@ protected:
 	AVoxel* voxels;
 	AWorldGenerator* world;
 
-	FVector chunkIndex;
 	int SizeXY;
 	int SizeZ;
 
