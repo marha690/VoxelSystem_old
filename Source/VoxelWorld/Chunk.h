@@ -23,7 +23,7 @@ public:
 	FVector chunkIndex;
 
 	AChunk();
-	void Initialize(FVector cIndex, int size, AWorldGenerator* _world);
+	void Initialize(FVector cIndex, int size, AWorldGenerator* _world, UMaterial* mat);
 	void BuildChunk();
 	void RenderChunk();
 
@@ -31,6 +31,9 @@ private:
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;
 	TArray<FLinearColor> VertexColors;
+
+	TArray<FVector> Normals;
+	TArray<FVector2D> UV0;
 
 	AVoxel* voxels;
 	AWorldGenerator* world;

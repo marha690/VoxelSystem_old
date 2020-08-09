@@ -21,7 +21,9 @@ public:
 	UPROPERTY(EditAnywhere)
 		AActor *player;
 	UPROPERTY(EditAnywhere)
-		int renderRadius = 15;
+		int renderRadius = 4;
+	UPROPERTY(EditAnywhere)
+		UMaterial *material;
 
 	static const int voxelsInChunkXYZ = 16;
 	static const int chunkSize = AVoxel::voxelSize * voxelsInChunkXYZ;

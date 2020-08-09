@@ -60,7 +60,7 @@ void AWorldGenerator::GenerateChunks()
 				FVector pos = FVector((x + playerPosX) * chunkSize, (y + playerPosY) * chunkSize, 0);
 				FRotator rot = FRotator(0, 0, 0);
 				auto v = (AChunk*)GetWorld()->SpawnActor(AChunk::StaticClass(), &pos, &rot);
-				v->Initialize(index, voxelsInChunkXYZ, this);
+				v->Initialize(index, voxelsInChunkXYZ, this, material);
 				v->SetFolderPath("/Chunks");
 				chunks.Add(v);
 			}

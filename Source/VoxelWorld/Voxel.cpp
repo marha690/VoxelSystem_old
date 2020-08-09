@@ -14,66 +14,127 @@ AVoxel::AVoxel(BlockType b, FVector pos, int index)
 	} else {
 		isSolid = true;
 	}
+
+	p0 = FVector(0 + indexInChunk.X * voxelSize, 0 + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize); //lower left - 0
+	p1 = FVector(0 + indexInChunk.X * voxelSize, 0 + indexInChunk.Y * voxelSize, voxelSize + indexInChunk.Z * voxelSize); //upper left - 1
+	p2 = FVector(0 + indexInChunk.X * voxelSize, voxelSize + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize); //lower right - 2 
+	p3 = FVector(0 + indexInChunk.X * voxelSize, voxelSize + indexInChunk.Y * voxelSize, voxelSize + indexInChunk.Z * voxelSize); //upper right - 3
+	p4 = FVector(voxelSize + indexInChunk.X * voxelSize, -0 + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize); //lower front left - 4
+	p5 = FVector(voxelSize + indexInChunk.X * voxelSize, 0 + indexInChunk.Y * voxelSize, voxelSize + indexInChunk.Z * voxelSize); //upper front left - 5
+	p6 = FVector(voxelSize + indexInChunk.X * voxelSize, voxelSize + indexInChunk.Y * voxelSize, voxelSize + indexInChunk.Z * voxelSize); //upper front right - 6
+	p7 = FVector(voxelSize + indexInChunk.X * voxelSize, voxelSize + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize); //lower front right - 7
 }
 
-void AVoxel::GenerateCubeMesh(TArray<FVector>* vertices, TArray<FLinearColor>* vertexColors)
+void AVoxel::CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32> *triangles, TArray<FVector2D> *uv, TArray<FVector>* normals)
 {
-	//Vertices
-	vertices->Add(FVector(0 + indexInChunk.X * voxelSize, 0 + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize)); //lower left - 0
-	vertices->Add(FVector(0 + indexInChunk.X * voxelSize, 0 + indexInChunk.Y * voxelSize, voxelSize + indexInChunk.Z * voxelSize)); //upper left - 1
-	vertices->Add(FVector(0 + indexInChunk.X * voxelSize, voxelSize + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize)); //lower right - 2 
-	vertices->Add(FVector(0 + indexInChunk.X * voxelSize, voxelSize + indexInChunk.Y * voxelSize, voxelSize + indexInChunk.Z * voxelSize)); //upper right - 3
-	vertices->Add(FVector(voxelSize + indexInChunk.X * voxelSize, -0 + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize)); //lower front left - 4
-	vertices->Add(FVector(voxelSize + indexInChunk.X * voxelSize, 0 + indexInChunk.Y * voxelSize, voxelSize + indexInChunk.Z * voxelSize)); //upper front left - 5
-	vertices->Add(FVector(voxelSize + indexInChunk.X * voxelSize, voxelSize + indexInChunk.Y * voxelSize, voxelSize + indexInChunk.Z * voxelSize)); //upper front right - 6
-	vertices->Add(FVector(voxelSize + indexInChunk.X * voxelSize, voxelSize + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize)); //lower front right - 7
+	int32 startIndex = vertices->Num();
 
-	//Vertex color
-	vertexColors->Add(FLinearColor(0.f, 0.f, 1.f));
-	vertexColors->Add(FLinearColor(1.f, 0.f, 0.f));
-	vertexColors->Add(FLinearColor(1.f, 0.f, 0.f));
-	vertexColors->Add(FLinearColor(0.f, 1.f, 0.f));
-	vertexColors->Add(FLinearColor(0.5f, 1.f, 0.5f));
-	vertexColors->Add(FLinearColor(0.f, 1.f, 0.f));
-	vertexColors->Add(FLinearColor(1.f, 1.f, 0.f));
-	vertexColors->Add(FLinearColor(0.f, 1.f, 1.f));
-}
-
-void AVoxel::CreateQuad(Cubeside side, TArray<int32> *triangles)
-{
 	switch (side)
 	{
 	case BOTTOM:
-		//bottom face
-		AddTriangle(2 + listIndex * 8, 0 + listIndex * 8, 4 + listIndex * 8, triangles);
-		AddTriangle(4 + listIndex * 8, 7 + listIndex * 8, 2 + listIndex * 8, triangles);
+		//Bottom face
+		uv->Add(UV00);
+		uv->Add(UV10);
+		uv->Add(UV01);
+		uv->Add(UV11);
+		vertices->Add(p2);
+		vertices->Add(p0);
+		vertices->Add(p7);
+		vertices->Add(p4);
+		normals->Add(FVector::DownVector);
+		normals->Add(FVector::DownVector);
+		normals->Add(FVector::DownVector);
+		normals->Add(FVector::DownVector);
+		AddTriangle(startIndex, startIndex + 1, startIndex + 2, triangles);
+		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1, triangles);
 		break;
 	case TOP:
 		//Top face
-		AddTriangle(1 + listIndex * 8, 3 + listIndex * 8, 5 + listIndex * 8, triangles);
-		AddTriangle(6 + listIndex * 8, 5 + listIndex * 8, 3 + listIndex * 8, triangles);
+		uv->Add(UV00);
+		uv->Add(UV10);
+		uv->Add(UV01);
+		uv->Add(UV11);
+		vertices->Add(p1);
+		vertices->Add(p3);
+		vertices->Add(p5);
+		vertices->Add(p6);
+		normals->Add(FVector::UpVector);
+		normals->Add(FVector::UpVector);
+		normals->Add(FVector::UpVector);
+		normals->Add(FVector::UpVector);
+		AddTriangle(startIndex, startIndex + 1, startIndex + 2, triangles);
+		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1, triangles);
 		break;
 	case LEFT:
 		//Left face of cube
-		AddTriangle(0 + listIndex * 8, 1 + listIndex * 8, 4 + listIndex * 8, triangles);
-		AddTriangle(4 + listIndex * 8, 1 + listIndex * 8, 5 + listIndex * 8, triangles);
+		uv->Add(UV00);
+		uv->Add(UV10);
+		uv->Add(UV01);
+		uv->Add(UV11);
+		vertices->Add(p0);
+		vertices->Add(p1);
+		vertices->Add(p4);
+		vertices->Add(p5);
+		normals->Add(FVector::LeftVector);
+		normals->Add(FVector::LeftVector);
+		normals->Add(FVector::LeftVector);
+		normals->Add(FVector::LeftVector);
+		AddTriangle(startIndex, startIndex + 1, startIndex + 2, triangles);
+		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1, triangles);
 		break;
 	case RIGHT:
 		//Right face of cube
-		AddTriangle(7 + listIndex * 8, 6 + listIndex * 8, 3 + listIndex * 8, triangles);
-		AddTriangle(3 + listIndex * 8, 2 + listIndex * 8, 7 + listIndex * 8, triangles);
+		uv->Add(UV00);
+		uv->Add(UV10);
+		uv->Add(UV01);
+		uv->Add(UV11);
+		vertices->Add(p7);
+		vertices->Add(p6);
+		vertices->Add(p2);
+		vertices->Add(p3);
+		normals->Add(FVector::RightVector);
+		normals->Add(FVector::RightVector);
+		normals->Add(FVector::RightVector);
+		normals->Add(FVector::RightVector);
+		AddTriangle(startIndex, startIndex + 1, startIndex + 2, triangles);
+		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1, triangles);
 		break;
 	case FRONT:
-		//Front face of cube
-		AddTriangle(4 + listIndex * 8, 5 + listIndex * 8, 7 + listIndex * 8, triangles);
-		AddTriangle(7 + listIndex * 8, 5 + listIndex * 8, 6 + listIndex * 8, triangles);
+		//Right face of cube
+		uv->Add(UV00);
+		uv->Add(UV10);
+		uv->Add(UV01);
+		uv->Add(UV11);
+		vertices->Add(p4);
+		vertices->Add(p5);
+		vertices->Add(p7);
+		vertices->Add(p6);
+		normals->Add(FVector::ForwardVector);
+		normals->Add(FVector::ForwardVector);
+		normals->Add(FVector::ForwardVector);
+		normals->Add(FVector::ForwardVector);
+		AddTriangle(startIndex, startIndex + 1, startIndex + 2, triangles);
+		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1, triangles);
 		break;
 	case BACK:
 		//Back face of cube
-		AddTriangle(0 + listIndex * 8, 2 + listIndex * 8, 3 + listIndex * 8, triangles);
-		AddTriangle(3 + listIndex * 8, 1 + listIndex * 8, 0 + listIndex * 8, triangles);
+		uv->Add(UV00);
+		uv->Add(UV10);
+		uv->Add(UV01);
+		uv->Add(UV11);
+		vertices->Add(p3);
+		vertices->Add(p1);
+		vertices->Add(p2);
+		vertices->Add(p0);
+		normals->Add(FVector::BackwardVector);
+		normals->Add(FVector::BackwardVector);
+		normals->Add(FVector::BackwardVector);
+		normals->Add(FVector::BackwardVector);
+		AddTriangle(startIndex, startIndex + 1, startIndex + 2, triangles);
+		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1, triangles);
 		break;
 	}
+
 }
 
 void AVoxel::AddTriangle(int32 V1, int32 V2, int32 V3, TArray<int32>* triangles)
