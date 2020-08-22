@@ -13,12 +13,18 @@ public:
 	static enum BlockType {
 		AIR,
 		STONE,
-		GRASS
+		GRASS,
+		TREESTART,
+		LEAVES,
+		WOOD,
 	};
+
 	static const int32 voxelSize = 50;
 
 	AVoxel();
 	AVoxel(BlockType b, FVector pos, int index);
+
+	void setVoxelType(BlockType type);
 
 	//Properites for the voxel.
 	BlockType bType;
@@ -41,8 +47,9 @@ public:
 	FVector2D UV01 = FVector2D(0.f, 1.f);
 	FVector2D UV11 = FVector2D(1.f, 1.f);
 
-	//void GenerateCubeMesh(TArray<FVector>* vertices, TArray<FLinearColor>* vertexColors, TArray<FVector2D>* uv, TArray<FVector>* normals);
-	void CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32>* triangles, TArray<FVector2D>* uv, TArray<FVector> *normals);
+	void CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32>* triangles, TArray<FVector2D>* uv, TArray<FVector> *normals, TArray<FLinearColor>* vertexColors);
+
+	FLinearColor getVertexColor();
 protected:
 	void AddTriangle(int32 V1, int32 V2, int32 V3, TArray<int32>* triangles);
 };

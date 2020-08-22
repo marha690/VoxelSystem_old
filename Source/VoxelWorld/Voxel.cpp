@@ -9,11 +9,7 @@ AVoxel::AVoxel()
 AVoxel::AVoxel(BlockType b, FVector pos, int index)
 	: bType(b), indexInChunk(pos), listIndex(index)
 {
-	if (b == AIR) {
-		isSolid = false;
-	} else {
-		isSolid = true;
-	}
+	setVoxelType(b);
 
 	p0 = FVector(0 + indexInChunk.X * voxelSize, 0 + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize); //lower left - 0
 	p1 = FVector(0 + indexInChunk.X * voxelSize, 0 + indexInChunk.Y * voxelSize, voxelSize + indexInChunk.Z * voxelSize); //upper left - 1
@@ -25,7 +21,18 @@ AVoxel::AVoxel(BlockType b, FVector pos, int index)
 	p7 = FVector(voxelSize + indexInChunk.X * voxelSize, voxelSize + indexInChunk.Y * voxelSize, 0 + indexInChunk.Z * voxelSize); //lower front right - 7
 }
 
-void AVoxel::CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32> *triangles, TArray<FVector2D> *uv, TArray<FVector>* normals)
+void AVoxel::setVoxelType(BlockType type)
+{
+	bType = type;
+	if (type == AIR) {
+		isSolid = false;
+	}
+	else {
+		isSolid = true;
+	}
+}
+
+void AVoxel::CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32> *triangles, TArray<FVector2D> *uv, TArray<FVector>* normals, TArray<FLinearColor>* vertexColors)
 {
 	int32 startIndex = vertices->Num();
 
@@ -47,6 +54,10 @@ void AVoxel::CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32> 
 		normals->Add(FVector::DownVector);
 		AddTriangle(startIndex, startIndex + 1, startIndex + 2, triangles);
 		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1, triangles);
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
 		break;
 	case TOP:
 		//Top face
@@ -64,6 +75,10 @@ void AVoxel::CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32> 
 		normals->Add(FVector::UpVector);
 		AddTriangle(startIndex, startIndex + 1, startIndex + 2, triangles);
 		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1, triangles);
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
 		break;
 	case LEFT:
 		//Left face of cube
@@ -81,6 +96,10 @@ void AVoxel::CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32> 
 		normals->Add(FVector::LeftVector);
 		AddTriangle(startIndex, startIndex + 1, startIndex + 2, triangles);
 		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1, triangles);
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
 		break;
 	case RIGHT:
 		//Right face of cube
@@ -98,6 +117,10 @@ void AVoxel::CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32> 
 		normals->Add(FVector::RightVector);
 		AddTriangle(startIndex, startIndex + 1, startIndex + 2, triangles);
 		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1, triangles);
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
 		break;
 	case FRONT:
 		//Right face of cube
@@ -115,6 +138,10 @@ void AVoxel::CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32> 
 		normals->Add(FVector::ForwardVector);
 		AddTriangle(startIndex, startIndex + 1, startIndex + 2, triangles);
 		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1, triangles);
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
 		break;
 	case BACK:
 		//Back face of cube
@@ -132,9 +159,36 @@ void AVoxel::CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32> 
 		normals->Add(FVector::BackwardVector);
 		AddTriangle(startIndex, startIndex + 1, startIndex + 2, triangles);
 		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1, triangles);
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
+		vertexColors->Add(getVertexColor());
 		break;
 	}
 
+}
+
+FLinearColor AVoxel::getVertexColor()
+{
+	switch (bType)
+	{
+	case AVoxel::STONE:
+		return FLinearColor::Gray;
+		break;
+	case AVoxel::GRASS:
+		return FLinearColor(0,123,123); //cyan
+		break;
+	case AVoxel::LEAVES:
+		return FLinearColor(FColor(0, 105, 30));
+		break;
+	case AVoxel::TREESTART:
+	case AVoxel::WOOD:
+		return FLinearColor(FColor(210,105,30)); //brown
+		break;
+	default:
+		return FLinearColor::Black;
+		break;
+	}
 }
 
 void AVoxel::AddTriangle(int32 V1, int32 V2, int32 V3, TArray<int32>* triangles)

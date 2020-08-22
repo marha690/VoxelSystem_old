@@ -38,11 +38,16 @@ private:
 	AVoxel* voxels;
 	AWorldGenerator* world;
 
-	int Size;
-	int NumberOfVoxels;
+	int Size; //voxels in each side 
+	int NumberOfVoxels; // all voxels which exists inside the chunk.
+
+	bool featuresCreated = false;
 
 	UProceduralMeshComponent* CustomMesh;
 
+	void buildTrees(int x, int y, int z);
+	AVoxel* getVoxel(int x, int y, int z);
+	int getVoxelIndex(int x, int y, int z);
 	bool hasSolidNeighbour(int x, int y, int z);
 	int ConvertVoxelToLocal(int i);
 	friend class ChunkTask;
