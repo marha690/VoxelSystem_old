@@ -34,8 +34,8 @@ void AChunk::BuildChunk()
 	(new FAutoDeleteAsyncTask<ChunkTask>(this))->StartBackgroundTask(); //Thread.
 }
 
-void AChunk::RenderChunk()
-{
+
+void AChunk::generateStructures() {
 	//Trees
 	if (!featuresCreated)
 	{
@@ -51,8 +51,11 @@ void AChunk::RenderChunk()
 		}
 		featuresCreated = true;
 	}
+	status = ChunkStatus::DRAW;
+}
 
-
+void AChunk::RenderChunk()
+{
 	//Move to thread later.
 	for (size_t i = 0; i < NumberOfVoxels; i++)
 	{
@@ -74,6 +77,22 @@ void AChunk::RenderChunk()
 	}
 
 	CustomMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UV0, VertexColors, TArray<FProcMeshTangent>(), true); // Texture.
+	status = ChunkStatus::DONE;
+}
+
+void AChunk::ReRenderChunk()
+{
+	Vertices.Empty();
+	UV0.Empty();
+	Normals.Empty();
+	VertexColors.Empty();
+	featuresCreated = false;
+	RenderChunk();
+}
+
+void AChunk::Destroyed()
+{
+	delete[] voxels;
 }
 
 void AChunk::buildTrees(int x, int y, int z)
@@ -81,11 +100,12 @@ void AChunk::buildTrees(int x, int y, int z)
 	if (getVoxel(x, y, z)->bType != AVoxel::TREESTART)
 		return;
 
-
 	AVoxel* t = getVoxel(x, y, z + 1);
+
 	if (t != nullptr) {
 		t->setVoxelType(AVoxel::WOOD);
 	}
+
 	t = getVoxel(x, y, z + 2);
 	if (t != nullptr) {
 		t->setVoxelType(AVoxel::WOOD);
@@ -299,27 +319,7 @@ void ChunkTask::DoWork()
 		}
 	}
 
-	//Does not work in thread.
-	//for (size_t i = 0; i < chunk->NumberOfVoxels; i++)
-	//{
-	//	if (!chunk->voxels[i].isSolid) continue;
-
-	//	auto& voxelPos = chunk->voxels[i].indexInChunk;
-	//	if (!chunk->hasSolidNeighbour(voxelPos.X - 1, voxelPos.Y, voxelPos.Z))
-	//		chunk->voxels[i].CreateQuad(AVoxel::BACK, &chunk->Vertices, &chunk->Triangles, &chunk->UV0, &chunk->Normals);
-	//	if (!chunk->hasSolidNeighbour(voxelPos.X + 1, voxelPos.Y, voxelPos.Z))
-	//		chunk->voxels[i].CreateQuad(AVoxel::FRONT, &chunk->Vertices, &chunk->Triangles, &chunk->UV0, &chunk->Normals);
-	//	if (!chunk->hasSolidNeighbour(voxelPos.X, voxelPos.Y - 1, voxelPos.Z))
-	//		chunk->voxels[i].CreateQuad(AVoxel::LEFT, &chunk->Vertices, &chunk->Triangles, &chunk->UV0, &chunk->Normals);
-	//	if (!chunk->hasSolidNeighbour(voxelPos.X, voxelPos.Y + 1, voxelPos.Z))
-	//		chunk->voxels[i].CreateQuad(AVoxel::RIGHT, &chunk->Vertices, &chunk->Triangles, &chunk->UV0, &chunk->Normals);
-		//if (!chunk->hasSolidNeighbour(voxelPos.X, voxelPos.Y, voxelPos.Z + 1))
-		//	chunk->voxels[i].CreateQuad(AVoxel::TOP, &chunk->Vertices, &chunk->Triangles, &chunk->UV0, &chunk->Normals);
-		//if (!chunk->hasSolidNeighbour(voxelPos.X, voxelPos.Y, voxelPos.Z - 1))
-		//	chunk->voxels[i].CreateQuad(AVoxel::BOTTOM, &chunk->Vertices, &chunk->Triangles, &chunk->UV0, &chunk->Normals);
-	//}
-
 	//Update status so that worldGenerator can draw the chunk.
-	chunk->status = chunk->ChunkStatus::DRAW;
+	chunk->status = chunk->ChunkStatus::STRUCTURES;
 }
 

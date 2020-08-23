@@ -21,7 +21,9 @@ public:
 	UPROPERTY(EditAnywhere)
 		AActor *player;
 	UPROPERTY(EditAnywhere)
-		int renderRadius = 4;
+		int renderRadius = 10;
+	UPROPERTY(EditAnywhere)
+		int loadedAddition = 4; // adds generated chunks to rendered chunks.
 	UPROPERTY(EditAnywhere)
 		UMaterial *material;
 
@@ -29,7 +31,8 @@ public:
 	static const int chunkSize = AVoxel::voxelSize * voxelsInChunkXYZ;
 	TArray<class AChunk*> chunks;
 
-	bool isBuilding = false;
+	bool isStartup = true;
+	bool isStartup2 = false;
 protected:
 	UWorld* WRLD;
 
@@ -41,6 +44,10 @@ protected:
 	void PostLoad() override;
 
 	void GenerateChunks();
+
+	void loadChunk(FVector index);
+	void makeStructures(FVector index);
+	void removeChunk(FVector index);
 
 public:
 	// Called every frame
