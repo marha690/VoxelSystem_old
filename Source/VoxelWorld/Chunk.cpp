@@ -24,7 +24,7 @@ void AChunk::Initialize(FVector cIndex, int size, AWorldGenerator*_world, UMater
 	chunkIndex = cIndex;
 	Size = size;
 	world = _world;
-	status = ChunkStatus::GENERATING;
+	status = ChunkStatus::LOAD;
 	NumberOfVoxels = Size * Size * Size;
 	BuildChunk();
 }
@@ -195,7 +195,7 @@ AVoxel* AChunk::getVoxel(int x, int y, int z)
 
 		for (auto& c : world->chunks) {
 
-			if (c->chunkIndex == newChunkIndex && c->status != c->ChunkStatus::GENERATING) {
+			if (c->chunkIndex == newChunkIndex && c->status != c->ChunkStatus::LOAD) {
 				int listIndex = getVoxelIndex(x, y, z);
 				return &c->voxels[listIndex];
 			}
@@ -252,7 +252,7 @@ bool AChunk::hasSolidNeighbour(int x, int y, int z)
 	else {
 		//Inside other chunk.
 		for (auto& c : world->chunks) {
-			if (c->chunkIndex == (chunkIndex + chunkOffset) && c->status != c->ChunkStatus::GENERATING) {
+			if (c->chunkIndex == (chunkIndex + chunkOffset) && c->status != c->ChunkStatus::LOAD) {
 
 				int listIndex = getVoxelIndex(x, y, z);
 				return c->voxels[listIndex].isSolid;
@@ -320,6 +320,6 @@ void ChunkTask::DoWork()
 	}
 
 	//Update status so that worldGenerator can draw the chunk.
-	chunk->status = chunk->ChunkStatus::STRUCTURES;
+	chunk->status = chunk->ChunkStatus::GENERATE;
 }
 

@@ -15,15 +15,17 @@ class VOXELWORLD_API AWorldGenerator : public AActor
 	GENERATED_BODY()
 
 public:
+	static enum RenderStage {LOAD, GENERATE, DRAW, NONE};
+
 	// Sets default values for this actor's properties
 	AWorldGenerator();
 
 	UPROPERTY(EditAnywhere)
 		AActor *player;
 	UPROPERTY(EditAnywhere)
-		int renderRadius = 10;
+		int generationDistance = 3;
 	UPROPERTY(EditAnywhere)
-		int loadedAddition = 4; // adds generated chunks to rendered chunks.
+		int renderDistance = 6;
 	UPROPERTY(EditAnywhere)
 		UMaterial *material;
 
@@ -31,8 +33,15 @@ public:
 	static const int chunkSize = AVoxel::voxelSize * voxelsInChunkXYZ;
 	TArray<class AChunk*> chunks;
 
-	bool isStartup = true;
-	bool isStartup2 = false;
+private:
+	bool hasMoved = false;
+	int oldPlayerX;
+	int oldPlayerY;
+	int ring = 1; //Used to render around the player
+	RenderStage stage = RenderStage::LOAD;
+	//bool isWorking = false;
+	bool doesChunkExist(FVector index, AChunk::ChunkStatus& _status);
+
 protected:
 	UWorld* WRLD;
 
@@ -45,7 +54,7 @@ protected:
 
 	void GenerateChunks();
 
-	void loadChunk(FVector index);
+	bool loadChunk(FVector index);
 	void makeStructures(FVector index);
 	void removeChunk(FVector index);
 

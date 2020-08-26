@@ -17,6 +17,8 @@ void AWorldGenerator::BeginPlay()
 	Super::BeginPlay();
 	WRLD = GetWorld();
 	verify(WRLD != nullptr);
+	oldPlayerX = (int)floor(player->GetTransform().GetLocation().X / chunkSize);
+	oldPlayerY = (int)floor(player->GetTransform().GetLocation().Y / chunkSize);
 }
 
 void AWorldGenerator::PostActorCreated()
@@ -29,52 +31,7 @@ void AWorldGenerator::PostLoad()
 	Super::PostLoad();
 }
 
-void AWorldGenerator::GenerateChunks()
-{
-	int playerPosX = (int)floor(player->GetTransform().GetLocation().X / chunkSize); //the chunk index whiuch
-	int playerPosY = (int)floor(player->GetTransform().GetLocation().Y / chunkSize);
-
-	// Load chunks.
-	int radius = renderRadius + loadedAddition;
-	for (int x = -radius; x <= radius; x++) {
-		for (int y = -radius; y <= radius; y++) {
-			FVector index = FVector(x + playerPosX, y + playerPosY, 0);
-			loadChunk(index);
-		}
-	}
-
-	// Generate objects.
-	for (auto c : chunks) {
-		int renderRectangle = renderRadius + (loadedAddition / 2);
-		if ((abs(c->chunkIndex.X - playerPosX) == renderRectangle && abs(c->chunkIndex.Y - playerPosY) <= renderRectangle) ||
-			(abs(c->chunkIndex.Y - playerPosY) == renderRectangle) && abs(c->chunkIndex.X - playerPosX) <= renderRectangle) {
-			if (c->status == AChunk::ChunkStatus::STRUCTURES) {
-				c->generateStructures();
-			}
-		}
-	}
-
-	// Render chunks
-	for (auto c : chunks) {
-		if (abs(c->chunkIndex.Y - playerPosY) <= renderRadius && abs(c->chunkIndex.X - playerPosX) <= renderRadius) {
-			if (c->status == AChunk::ChunkStatus::DRAW) {
-				c->RenderChunk();
-			}
-		}
-	}
-
-	// Delete chunks
-	for (auto c : chunks) {
-		//if (abs(c->chunkIndex.Y - playerPosY) <= renderRadius && abs(c->chunkIndex.X - playerPosX) <= renderRadius) {
-		if (abs(c->chunkIndex.Y - playerPosY) > radius || abs(c->chunkIndex.X - playerPosX) > radius) {
-				chunks.Remove(c);
-				c->Destroy();
-				break;
-		}
-	}
-}
-
-void AWorldGenerator::loadChunk(FVector index)
+bool AWorldGenerator::loadChunk(FVector index)
 {
 	// Check if the chunk already is loaded.
 	bool newChunk = true;
@@ -94,6 +51,19 @@ void AWorldGenerator::loadChunk(FVector index)
 		v->SetFolderPath("/Chunks");
 		chunks.Add(v);
 	}
+
+	return newChunk;
+}
+
+bool AWorldGenerator::doesChunkExist(FVector index, AChunk::ChunkStatus& _status)
+{
+	for (auto c : chunks) {
+		if (c->chunkIndex == index) {
+			_status = c->status;
+			return true;
+		}
+	}
+	return false;
 }
 
 void AWorldGenerator::makeStructures(FVector index)
@@ -110,52 +80,173 @@ void AWorldGenerator::makeStructures(FVector index)
 void AWorldGenerator::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if(isStartup)
+
+	int playerPosX = (int)floor(player->GetTransform().GetLocation().X / chunkSize);
+	int playerPosY = (int)floor(player->GetTransform().GetLocation().Y / chunkSize);
+
+
+	//Player moves over chunk boundary.
+	if (playerPosX != oldPlayerX || playerPosY != oldPlayerY) {
+		oldPlayerX = playerPosX;
+		oldPlayerY = playerPosY;
+		stage = RenderStage::LOAD;
+		//isWorking = false;
+		ring = 1;
+	}
+
+	//if (!isWorking) {
+		for (auto c : chunks) {
+			// ads one extra chunk so that small movements over chunk boundaries does not delete/generate chunks.
+			int maxDistance = renderDistance + (generationDistance * 2) + 1 + 1;
+			int distX = abs(c->chunkIndex.X - playerPosX);
+			int distY = abs(c->chunkIndex.Y - playerPosY);
+			if (distX > maxDistance || distY > maxDistance) {
+				chunks.Remove(c);
+				c->Destroy();
+				break; // instead of isWorking
+			}
+		}
+	//}
+
+	if (ring > renderDistance) {
+		return;
+	}
+
+	//if (!isWorking) {
+		//isWorking = true;
+		//Render
+		switch (stage)
+		{
+		case AWorldGenerator::LOAD:
+		{
+
+			int radius = ring + (generationDistance * 2) + 1;
+			for (int x = -radius; x <= radius; x++)
+				for (int y = -radius; y <= radius; y++) {
+					FVector index = FVector(x + playerPosX, y + playerPosY, 0);
+					bool n = loadChunk(index);
+					if (n)
+						break; // instead of isWorking
+				}
+			break;
+		}
+		case AWorldGenerator::GENERATE:
+		{
+			int distanceToGenChunks = ring + generationDistance + 1;
+			for (auto c : chunks) {
+				int distX = abs(c->chunkIndex.X - playerPosX);
+				int distY = abs(c->chunkIndex.Y - playerPosY);
+
+				if (ring == 1) { //Generate all chunks inside.
+					if (distX <= distanceToGenChunks && distY <= distanceToGenChunks) {
+						if (c->status == AChunk::ChunkStatus::GENERATE) {
+							c->generateStructures();
+							break; // instead of isWorking
+						}
+					}
+				}
+				else //Generate only the chunks in the middle of non-rendered chunks.
+				{
+					if ((distX == distanceToGenChunks && distY <= distanceToGenChunks) ||
+						(distY == distanceToGenChunks && distX <= distanceToGenChunks)) {
+						if (c->status == AChunk::ChunkStatus::GENERATE) {
+							c->generateStructures();
+							break; // instead of isWorking
+						}
+					}
+				}
+
+			}
+			break;
+		}
+		case AWorldGenerator::DRAW:
+		{
+			for (auto c : chunks) {
+				int distX = abs(c->chunkIndex.X - playerPosX);
+				int distY = abs(c->chunkIndex.Y - playerPosY);
+				if (distY <= ring && distX <= ring) {
+					if (c->status == AChunk::ChunkStatus::DRAW) {
+						c->RenderChunk();
+						break; // instead of isWorking
+					}
+				}
+			}
+			break;
+		}
+		default:
+			break;
+		}
+	//}
+
+	//Check if ready for next stage.
+	bool ready = true;
+	switch (stage)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("starts..."));
-
-		// Load chunks.
-		int playerPosX = (int)floor(player->GetTransform().GetLocation().X / chunkSize);
-		int playerPosY = (int)floor(player->GetTransform().GetLocation().Y / chunkSize);
-
-		int radius = renderRadius + loadedAddition;
-		for (int x = -radius; x <= radius; x++) {
+	case AWorldGenerator::LOAD:
+	{
+		int radius = ring + (generationDistance * 2) + 1;
+		for (int x = -radius; x <= radius; x++)
 			for (int y = -radius; y <= radius; y++) {
 				FVector index = FVector(x + playerPosX, y + playerPosY, 0);
-				loadChunk(index);
+				AChunk::ChunkStatus s;
+				bool m = doesChunkExist(index, s);
+				if (m) {
+					if (s == AChunk::ChunkStatus::LOAD) {
+						ready = false;
+					}
+				}
 			}
-		}
 
-		for (auto c : chunks) {
-			isStartup = false;
-			isStartup2 = true;
-			if (c->status != AChunk::ChunkStatus::STRUCTURES) {
-				isStartup = true;
-				isStartup2 = false;
-				break;
-			}
+		if (ready) {
+			stage = RenderStage::GENERATE;
+			//isWorking = false; 
 		}
+		break;
 	}
-	else if (isStartup2)
+	case AWorldGenerator::GENERATE:
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("starts2..."));
-
-		// generate chunks
+		int distanceToGenChunks = ring + generationDistance + 1;
 		for (auto c : chunks) {
-			if (c->status == AChunk::ChunkStatus::STRUCTURES) {
-				c->generateStructures();
-				c->status = AChunk::ChunkStatus::DRAW;
+			int distX = abs(c->chunkIndex.X - playerPosX);
+			int distY = abs(c->chunkIndex.Y - playerPosY);
+
+			if ((distX == distanceToGenChunks && distY <= distanceToGenChunks) ||
+				(distY == distanceToGenChunks && distX <= distanceToGenChunks)) {
+				if (c->status != AChunk::ChunkStatus::DRAW && c->status != AChunk::ChunkStatus::DONE) {
+					ready = false;
+				}
 			}
 		}
 
-		for (auto c : chunks) {
-			isStartup2 = false;
-			if (c->status != AChunk::ChunkStatus::DRAW) {
-				isStartup = true;
-				break;
-			}
+		if (ready) {
+			stage = RenderStage::DRAW;
+			//isWorking = false;
 		}
+		break;
 	}
-	else
-		GenerateChunks();
+	case AWorldGenerator::DRAW:
+	{
+		for (auto c : chunks) {
+			int distX = abs(c->chunkIndex.X - playerPosX);
+			int distY = abs(c->chunkIndex.Y - playerPosY);
+			if (distY <= ring && distX <= ring) {
+				if (c->status == AChunk::ChunkStatus::DRAW) {
+					ready = false;
+				}
+			}
+		}
+
+		if (ready) {
+			stage = RenderStage::LOAD;
+			//isWorking = false;
+			ring++;
+		}
+		break;
+	}
+	default:
+		break;
+	}
+
+
+
 }

@@ -18,7 +18,7 @@ class VOXELWORLD_API AChunk : public AActor
 	GENERATED_BODY()
 
 public:
-	static enum ChunkStatus { DRAW, REDRAW, DONE, STRUCTURES, GENERATING};
+	static enum ChunkStatus { LOAD, GENERATE, DRAW, DONE};
 	ChunkStatus status;
 	FVector chunkIndex;
 
@@ -26,8 +26,8 @@ public:
 	void Initialize(FVector cIndex, int size, AWorldGenerator* _world, UMaterial* mat);
 	void BuildChunk();
 	void RenderChunk();
-	void generateStructures();
 	void ReRenderChunk();
+	void generateStructures();
 
 private:
 	TArray<FVector> Vertices;
