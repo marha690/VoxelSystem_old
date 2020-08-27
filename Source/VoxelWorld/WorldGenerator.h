@@ -8,7 +8,6 @@
 #include "Voxel.h"
 #include "WorldGenerator.generated.h"
 
-
 UCLASS()
 class VOXELWORLD_API AWorldGenerator : public AActor
 {
@@ -29,17 +28,16 @@ public:
 	UPROPERTY(EditAnywhere)
 		UMaterial *material;
 
-	static const int voxelsInChunkXYZ = 16;
-	static const int chunkSize = AVoxel::voxelSize * voxelsInChunkXYZ;
 	TArray<class AChunk*> chunks;
+	static const int chunkSize = AVoxel::voxelSize * AChunk::Dimensions;
 
 private:
-	bool hasMoved = false;
 	int oldPlayerX;
 	int oldPlayerY;
-	int ring = 1; //Used to render around the player
+	int ring = 1; // Used to render around the player in steps
+	int numZChunks = 3;
+	bool hasMoved = false;
 	RenderStage stage = RenderStage::LOAD;
-	//bool isWorking = false;
 	bool doesChunkExist(FVector index, AChunk::ChunkStatus& _status);
 
 protected:

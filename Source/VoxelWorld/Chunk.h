@@ -9,9 +9,6 @@
 class AVoxel;
 class AWorldGenerator;
 
-/**
- * 
- */
 UCLASS()
 class VOXELWORLD_API AChunk : public AActor
 {
@@ -23,11 +20,14 @@ public:
 	FVector chunkIndex;
 
 	AChunk();
-	void Initialize(FVector cIndex, int size, AWorldGenerator* _world, UMaterial* mat);
+	void Initialize(FVector cIndex, AWorldGenerator* _world, UMaterial* mat);
 	void BuildChunk();
 	void RenderChunk();
 	void ReRenderChunk();
 	void generateStructures();
+
+	static const uint8 Dimensions = 16;
+	static const uint16 NumberOfVoxels = Dimensions * Dimensions * Dimensions;
 
 private:
 	TArray<FVector> Vertices;
@@ -39,9 +39,6 @@ private:
 
 	AVoxel* voxels;
 	AWorldGenerator* world;
-
-	int Size; //voxels in each side 
-	int NumberOfVoxels; // all voxels which exists inside the chunk.
 
 	bool featuresCreated = false;
 

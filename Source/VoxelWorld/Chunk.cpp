@@ -4,7 +4,7 @@
 #include "Chunk.h"
 #include "Engine/World.h"
 #include "Voxel.h"
-#include "FastNoise.h"
+#include "WorldNoise.h"
 #include "WorldGenerator.h"
 
 AChunk::AChunk()
@@ -17,15 +17,15 @@ AChunk::AChunk()
 	CustomMesh->bUseAsyncCooking = true;
 }
 
-void AChunk::Initialize(FVector cIndex, int size, AWorldGenerator*_world, UMaterial *mat)
+void AChunk::Initialize(FVector cIndex, AWorldGenerator*_world, UMaterial *mat)
 {
 	UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(mat, this);
 	CustomMesh->SetMaterial(0, DynMaterial);
 	chunkIndex = cIndex;
-	Size = size;
 	world = _world;
 	status = ChunkStatus::LOAD;
-	NumberOfVoxels = Size * Size * Size;
+	voxels = new AVoxel[NumberOfVoxels];
+
 	BuildChunk();
 }
 
@@ -34,16 +34,15 @@ void AChunk::BuildChunk()
 	(new FAutoDeleteAsyncTask<ChunkTask>(this))->StartBackgroundTask(); //Thread.
 }
 
-
 void AChunk::generateStructures() {
 	//Trees
 	if (!featuresCreated)
 	{
-		for (size_t i = 0; i < Size; i++)
+		for (size_t i = 0; i < Dimensions; i++)
 		{
-			for (size_t j = 0; j < Size; j++)
+			for (size_t j = 0; j < Dimensions; j++)
 			{
-				for (size_t k = 0; k < Size; k++)
+				for (size_t k = 0; k < Dimensions; k++)
 				{
 					buildTrees(i, j, k);
 				}
@@ -59,7 +58,7 @@ void AChunk::RenderChunk()
 	//Move to thread later.
 	for (size_t i = 0; i < NumberOfVoxels; i++)
 	{
-		if (!voxels[i].isSolid) continue;
+		if (!voxels[i].isSolid()) continue;
 
 		auto& voxelPos = voxels[i].indexInChunk;
 		if (!hasSolidNeighbour(voxelPos.X - 1, voxelPos.Y, voxelPos.Z))
@@ -152,13 +151,11 @@ void AChunk::buildTrees(int x, int y, int z)
 		t->setVoxelType(AVoxel::LEAVES);
 	}
 
-
-
 }
 
 AVoxel* AChunk::getVoxel(int x, int y, int z)
 {
-	if (x >= Size || y >= Size || z >= Size || x < 0 || y < 0 || z < 0) { // Inside other chunk.
+	if (x >= Dimensions || y >= Dimensions || z >= Dimensions || x < 0 || y < 0 || z < 0) { // Inside other chunk.
 		
 		int newX = x;
 		int newY = y;
@@ -169,7 +166,7 @@ AVoxel* AChunk::getVoxel(int x, int y, int z)
 			chunkOffset -= FVector(1, 0, 0);
 			x = ConvertVoxelToLocal(x);
 		}
-		else if (x > Size - 1) {
+		else if (x > Dimensions - 1) {
 			chunkOffset += FVector(1, 0, 0);
 			x = ConvertVoxelToLocal(x);
 		}
@@ -178,7 +175,7 @@ AVoxel* AChunk::getVoxel(int x, int y, int z)
 			chunkOffset -= FVector(0, 1, 0);
 			y = ConvertVoxelToLocal(y);
 		}
-		else if (y > Size - 1) {
+		else if (y > Dimensions - 1) {
 			chunkOffset += FVector(0, 1, 0);
 			y = ConvertVoxelToLocal(y);
 		}
@@ -187,7 +184,7 @@ AVoxel* AChunk::getVoxel(int x, int y, int z)
 			chunkOffset -= FVector(0, 0, 1);
 			z = ConvertVoxelToLocal(z);
 		}
-		else if (z > Size - 1) {
+		else if (z > Dimensions - 1) {
 			chunkOffset += FVector(0, 0, 1);
 			z = ConvertVoxelToLocal(z);
 		}
@@ -210,7 +207,7 @@ AVoxel* AChunk::getVoxel(int x, int y, int z)
 
 int AChunk::getVoxelIndex(int x, int y, int z)
 {
-	return x + y * Size + z * Size * Size;
+	return x + y * Dimensions + z * Dimensions * Dimensions;
 }
 
 bool AChunk::hasSolidNeighbour(int x, int y, int z)
@@ -220,7 +217,7 @@ bool AChunk::hasSolidNeighbour(int x, int y, int z)
 		chunkOffset -= FVector(1, 0, 0);
 		x = ConvertVoxelToLocal(x);
 	}
-	else if (x > Size - 1) {
+	else if (x > Dimensions - 1) {
 		chunkOffset += FVector(1, 0, 0);
 		x = ConvertVoxelToLocal(x);
 	}
@@ -229,7 +226,7 @@ bool AChunk::hasSolidNeighbour(int x, int y, int z)
 		chunkOffset -= FVector(0, 1, 0);
 		y = ConvertVoxelToLocal(y);
 	}
-	else if (y > Size - 1) {
+	else if (y > Dimensions - 1) {
 		chunkOffset += FVector(0, 1, 0);
 		y = ConvertVoxelToLocal(y);
 	}
@@ -238,7 +235,7 @@ bool AChunk::hasSolidNeighbour(int x, int y, int z)
 		chunkOffset -= FVector(0, 0, 1);
 		z = ConvertVoxelToLocal(z);
 	}
-	else if (z > Size - 1) {
+	else if (z > Dimensions - 1) {
 		chunkOffset += FVector(0, 0, 1);
 		z = ConvertVoxelToLocal(z);
 	}
@@ -247,7 +244,7 @@ bool AChunk::hasSolidNeighbour(int x, int y, int z)
 		//Inside this chunk.
 		int listIndex = getVoxelIndex(x, y, z);
 		auto& neighbouringVoxel = voxels[listIndex];
-		return neighbouringVoxel.isSolid;
+		return neighbouringVoxel.isSolid();
 	}
 	else {
 		//Inside other chunk.
@@ -255,7 +252,7 @@ bool AChunk::hasSolidNeighbour(int x, int y, int z)
 			if (c->chunkIndex == (chunkIndex + chunkOffset) && c->status != c->ChunkStatus::LOAD) {
 
 				int listIndex = getVoxelIndex(x, y, z);
-				return c->voxels[listIndex].isSolid;
+				return c->voxels[listIndex].isSolid();
 			}
 		}
 		return false; //Outside all read chunks.
@@ -265,10 +262,10 @@ bool AChunk::hasSolidNeighbour(int x, int y, int z)
 int AChunk::ConvertVoxelToLocal(int i)
 {
 	if (i <= -1) {
-		i = Size + i;
+		i = Dimensions + i;
 	}
-	else if (i >= Size) {
-		i = i - Size;
+	else if (i >= Dimensions) {
+		i = i - Dimensions;
 	}
 	return i;
 }
@@ -282,38 +279,13 @@ ChunkTask::ChunkTask(AChunk* c)
 void ChunkTask::DoWork()
 {
 	int counter = 0;
-	chunk->voxels = new AVoxel[chunk->NumberOfVoxels];
-
 	//Set all voxels inside the chunk.
-	for (int Z = 0; Z < chunk->Size; Z++) {
-		for (int Y = 0; Y < chunk->Size; Y++) {
-			for (int X = 0; X < chunk->Size; X++) {
-				FVector index = FVector(X, Y, Z);
-				FVector worldIndex = index + chunk->chunkIndex * FVector(chunk->Size, chunk->Size, chunk->Size);
-
-				//MOVE THIS TO OTHER FILE
-				FastNoise f(23);
-				f.SetInterp(FastNoise::Interp::Linear);
-
-				float adjust = 2.0f;
-				auto val = abs(f.GetPerlin(worldIndex.X * adjust, worldIndex.Y * adjust)) * 16.0;
-				val = floor(val);
-
-				if (worldIndex.Z > val) {
-					chunk->voxels[counter] = AVoxel(AVoxel::AIR, index, counter);
-				}
-				else {
-					if (counter % 2 == 0)
-						chunk->voxels[counter] = AVoxel(AVoxel::STONE, index, counter);
-					else
-						chunk->voxels[counter] = AVoxel(AVoxel::GRASS, index, counter);
-
-				}
-
-				if (worldIndex.Z == floor(val) && X == 15 && Y == 15 )
-					chunk->voxels[counter] = AVoxel(AVoxel::TREESTART, index, counter);
-				//END OF MOVE THIS TO OTHER FILE
-
+	for (int Z = 0; Z < chunk->Dimensions; Z++) {
+		for (int Y = 0; Y < chunk->Dimensions; Y++) {
+			for (int X = 0; X < chunk->Dimensions; X++) {
+				FVector localIndex = FVector(X, Y, Z);
+				FVector worldIndex = localIndex + chunk->chunkIndex * FVector(chunk->Dimensions, chunk->Dimensions, chunk->Dimensions);
+				WorldNoise::run(chunk->voxels[counter], worldIndex, localIndex, counter);
 				counter++;
 			}
 		}

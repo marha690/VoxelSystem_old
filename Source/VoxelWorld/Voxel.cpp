@@ -3,8 +3,13 @@
 
 #include "Voxel.h"
 
+const FVector2D AVoxel::UV00 = FVector2D(0.f, 0.f);
+const FVector2D AVoxel::UV10 = FVector2D(1.f, 0.f);
+const FVector2D AVoxel::UV01 = FVector2D(0.f, 1.f);
+const FVector2D AVoxel::UV11 = FVector2D(1.f, 1.f);
+
 AVoxel::AVoxel()
-	: bType(BlockType::AIR), indexInChunk(FVector(0.f, 0.f, 0.f)), isSolid(false) {}
+	: bType(BlockType::AIR), indexInChunk(FVector(-1.f, -1.f, -1.f)), solid(false) {}
 
 AVoxel::AVoxel(BlockType b, FVector pos, int index)
 	: bType(b), indexInChunk(pos), listIndex(index)
@@ -25,10 +30,10 @@ void AVoxel::setVoxelType(BlockType type)
 {
 	bType = type;
 	if (type == AIR) {
-		isSolid = false;
+		solid = false;
 	}
 	else {
-		isSolid = true;
+		solid = true;
 	}
 }
 
