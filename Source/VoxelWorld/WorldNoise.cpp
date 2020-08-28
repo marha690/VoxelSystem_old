@@ -3,24 +3,22 @@
 #include "WorldNoise.h"
 #include "FastNoise.h"
 
-#define Voxel(a) AVoxel(a, voxelLocalPos, voxelIndex)
+#define Voxel(a) AVoxel(a, voxelLocalPos, voxelIndex, c)
 
 //Main loop to generate the procedural noise for the game.
-void WorldNoise::run(AVoxel &v, FVector position, FVector voxelLocalPos, int voxelIndex)
+void WorldNoise::run(AVoxel &v, FVector position, FVector voxelLocalPos, int voxelIndex, AChunk* c)
 {
 	int height = getGroundHeight(position);
 
-
-	if (position.Z > height) {
+	// Ground
+	if (position.Z > height)
 		v = Voxel(AVoxel::AIR);
-	}
-	else {
-		if (voxelIndex % 2 == 0)
-			v = Voxel(AVoxel::STONE);
-		else
-			v = Voxel(AVoxel::GRASS);
-	}
+	else if (position.Z == height)
+		v = Voxel(AVoxel::GRASS);
+	else
+		v = Voxel(AVoxel::STONE);
 
+	// Trees
 	if (position.Z == floor(height) && voxelLocalPos.X == 15 && voxelLocalPos.Y == 15)
 		v = Voxel(AVoxel::TREESTART);
 }
@@ -36,4 +34,3 @@ float WorldNoise::getGroundHeight(FVector position)
 	val = floor(val);
 	return val;
 }
-

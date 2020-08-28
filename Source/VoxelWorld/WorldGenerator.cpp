@@ -2,6 +2,8 @@
 
 #include "WorldGenerator.h"
 #include "Chunk.h"
+#include "UObject/ConstructorHelpers.h"
+
 
 // Sets default values
 AWorldGenerator::AWorldGenerator()
@@ -18,6 +20,9 @@ void AWorldGenerator::BeginPlay()
 	verify(WRLD != nullptr);
 	oldPlayerX = (int)floor(player->GetTransform().GetLocation().X / chunkSize);
 	oldPlayerY = (int)floor(player->GetTransform().GetLocation().Y / chunkSize);
+
+	//Texture.
+	defaultAtlas = static_cast<FColor*>(defaultAtlas_UTexture2D->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_ONLY));
 }
 
 void AWorldGenerator::PostActorCreated()
@@ -28,6 +33,11 @@ void AWorldGenerator::PostActorCreated()
 void AWorldGenerator::PostLoad()
 {
 	Super::PostLoad();
+}
+
+void AWorldGenerator::EndPlay()
+{
+	defaultAtlas_UTexture2D->PlatformData->Mips[0].BulkData.Unlock();
 }
 
 bool AWorldGenerator::loadChunk(FVector index)
@@ -45,7 +55,7 @@ bool AWorldGenerator::loadChunk(FVector index)
 	FRotator rot = FRotator(0, 0, 0);
 	auto pos = (index * chunkSize);
 	auto v = (AChunk*)GetWorld()->SpawnActor(AChunk::StaticClass(), &pos, &rot);
-	v->Initialize(index, this, material);
+	v->Initialize(index, this, material, defaultAtlas);
 	v->SetFolderPath("/Chunks");
 	chunks.Add(v);
 	return true;

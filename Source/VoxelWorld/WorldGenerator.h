@@ -28,6 +28,9 @@ public:
 	UPROPERTY(EditAnywhere)
 		UMaterial *material;
 
+	UPROPERTY(EditAnywhere)
+		UTexture2D* defaultAtlas_UTexture2D;
+
 	TArray<class AChunk*> chunks;
 	static const int chunkSize = AVoxel::voxelSize * AChunk::Dimensions;
 
@@ -40,6 +43,8 @@ private:
 	RenderStage stage = RenderStage::LOAD;
 	bool doesChunkExist(FVector index, AChunk::ChunkStatus& _status);
 
+	FColor *defaultAtlas;
+
 protected:
 	UWorld* WRLD;
 
@@ -50,11 +55,10 @@ protected:
 
 	void PostLoad() override;
 
-	void GenerateChunks();
+	virtual void EndPlay();
 
 	bool loadChunk(FVector index);
 	void makeStructures(FVector index);
-	void removeChunk(FVector index);
 
 public:
 	// Called every frame

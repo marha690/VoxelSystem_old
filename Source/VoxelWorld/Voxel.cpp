@@ -2,6 +2,7 @@
 
 
 #include "Voxel.h"
+#include "Chunk.h"
 
 const FVector2D AVoxel::UV00 = FVector2D(0.f, 0.f);
 const FVector2D AVoxel::UV10 = FVector2D(1.f, 0.f);
@@ -11,8 +12,8 @@ const FVector2D AVoxel::UV11 = FVector2D(1.f, 1.f);
 AVoxel::AVoxel()
 	: bType(BlockType::AIR), indexInChunk(FVector(-1.f, -1.f, -1.f)), solid(false) {}
 
-AVoxel::AVoxel(BlockType b, FVector pos, int index)
-	: bType(b), indexInChunk(pos), listIndex(index)
+AVoxel::AVoxel(BlockType b, FVector pos, int index, AChunk *p)
+	: bType(b), indexInChunk(pos), listIndex(index), parent(p)
 {
 	setVoxelType(b);
 
@@ -175,25 +176,7 @@ void AVoxel::CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32> 
 
 FLinearColor AVoxel::getVertexColor()
 {
-	switch (bType)
-	{
-	case AVoxel::STONE:
-		return FLinearColor::Gray;
-		break;
-	case AVoxel::GRASS:
-		return FLinearColor(0,123,123); //cyan
-		break;
-	case AVoxel::LEAVES:
-		return FLinearColor(FColor(0, 105, 30));
-		break;
-	case AVoxel::TREESTART:
-	case AVoxel::WOOD:
-		return FLinearColor(FColor(210,105,30)); //brown
-		break;
-	default:
-		return FLinearColor::Black;
-		break;
-	}
+	return parent->atlas[(int)bType];
 }
 
 void AVoxel::AddTriangle(int32 V1, int32 V2, int32 V3, TArray<int32>* triangles)

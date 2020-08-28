@@ -5,10 +5,12 @@
 #include "CoreMinimal.h"
 #include "Voxel.h"
 
+class AChunk;
+
 class VOXELWORLD_API WorldNoise
 {
 public:
-	static void run(AVoxel& v, FVector position, FVector voxelLocalPos, int voxelIndex);
+	static void run(AVoxel& v, FVector position, FVector voxelLocalPos, int voxelIndex, AChunk* c);
 
 private:
 	static float getGroundHeight(FVector position);
