@@ -189,13 +189,13 @@ AVoxel* AChunk::getVoxel(int x, int y, int z)
 		}
 		FVector newChunkIndex = chunkIndex + chunkOffset;
 
-		for (auto& c : world->chunks) {
-
-			if (c->chunkIndex == newChunkIndex && c->status != c->ChunkStatus::LOAD) {
+		if (world->chunks.Contains(newChunkIndex)) {
+			if (world->chunks[newChunkIndex]->status != AChunk::ChunkStatus::LOAD) {
 				int listIndex = getVoxelIndex(x, y, z);
-				return &c->voxels[listIndex];
+				return &world->chunks[newChunkIndex]->voxels[listIndex];
 			}
 		}
+
 		return nullptr;
 	}
 
@@ -211,51 +211,11 @@ int AChunk::getVoxelIndex(int x, int y, int z)
 
 bool AChunk::hasSolidNeighbour(int x, int y, int z)
 {
-	FVector chunkOffset = FVector(0, 0, 0);
-	if (x < 0) {
-		chunkOffset -= FVector(1, 0, 0);
-		x = ConvertVoxelToLocal(x);
-	}
-	else if (x > Dimensions - 1) {
-		chunkOffset += FVector(1, 0, 0);
-		x = ConvertVoxelToLocal(x);
-	}
-
-	if (y < 0) {
-		chunkOffset -= FVector(0, 1, 0);
-		y = ConvertVoxelToLocal(y);
-	}
-	else if (y > Dimensions - 1) {
-		chunkOffset += FVector(0, 1, 0);
-		y = ConvertVoxelToLocal(y);
-	}
-
-	if (z < 0) {
-		chunkOffset -= FVector(0, 0, 1);
-		z = ConvertVoxelToLocal(z);
-	}
-	else if (z > Dimensions - 1) {
-		chunkOffset += FVector(0, 0, 1);
-		z = ConvertVoxelToLocal(z);
-	}
-
-	if (chunkOffset == FVector(0, 0, 0)) {
-		//Inside this chunk.
-		int listIndex = getVoxelIndex(x, y, z);
-		auto& neighbouringVoxel = voxels[listIndex];
-		return neighbouringVoxel.isSolid();
-	}
-	else {
-		//Inside other chunk.
-		for (auto& c : world->chunks) {
-			if (c->chunkIndex == (chunkIndex + chunkOffset) && c->status != c->ChunkStatus::LOAD) {
-
-				int listIndex = getVoxelIndex(x, y, z);
-				return c->voxels[listIndex].isSolid();
-			}
-		}
-		return false; //Outside all read chunks.
-	}
+	AVoxel* c = getVoxel(x, y, z);
+	if (c)
+		return c->isSolid();
+	else
+		return false;
 }
 
 int AChunk::ConvertVoxelToLocal(int i)

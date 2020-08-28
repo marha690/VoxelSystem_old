@@ -31,7 +31,7 @@ public:
 	UPROPERTY(EditAnywhere)
 		UTexture2D* defaultAtlas_UTexture2D;
 
-	TArray<class AChunk*> chunks;
+	TMap<FVector, class AChunk*>chunks;
 	static const int chunkSize = AVoxel::voxelSize * AChunk::Dimensions;
 
 private:
