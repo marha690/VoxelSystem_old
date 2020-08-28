@@ -17,15 +17,14 @@ AChunk::AChunk()
 	CustomMesh->bUseAsyncCooking = true;
 }
 
-void AChunk::Initialize(FVector cIndex, AWorldGenerator*_world, UMaterial *mat, FColor* a)
+void AChunk::Initialize(FVector cIndex, AWorldGenerator*_world, UMaterial *mat, TArray<FColor>* colors)
 {
 	UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(mat, this);
 	CustomMesh->SetMaterial(0, DynMaterial);
 	chunkIndex = cIndex;
 	world = _world;
 	status = ChunkStatus::LOAD;
-	voxels = new AVoxel[NumberOfVoxels];
-	atlas = a;
+	colorAtlas = colors;
 	BuildChunk();
 }
 
@@ -278,6 +277,7 @@ ChunkTask::ChunkTask(AChunk* c)
 
 void ChunkTask::DoWork()
 {
+	chunk->voxels = new AVoxel[chunk->NumberOfVoxels];
 	int counter = 0;
 	//Set all voxels inside the chunk.
 	for (int Z = 0; Z < chunk->Dimensions; Z++) {
@@ -290,7 +290,6 @@ void ChunkTask::DoWork()
 			}
 		}
 	}
-
 	//Update status so that worldGenerator can draw the chunk.
 	chunk->status = chunk->ChunkStatus::GENERATE;
 }

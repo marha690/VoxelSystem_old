@@ -176,7 +176,8 @@ void AVoxel::CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32> 
 
 FLinearColor AVoxel::getVertexColor()
 {
-	return parent->atlas[(int)bType];
+	FColor *c = parent->colorAtlas->GetData();
+	return c[(int)bType];
 }
 
 void AVoxel::AddTriangle(int32 V1, int32 V2, int32 V3, TArray<int32>* triangles)

@@ -20,7 +20,7 @@ public:
 	FVector chunkIndex;
 
 	AChunk();
-	void Initialize(FVector cIndex, AWorldGenerator* _world, UMaterial* mat, FColor *a);
+	void Initialize(FVector cIndex, AWorldGenerator* _world, UMaterial* mat, TArray<FColor> *colors);
 	void BuildChunk();
 	void RenderChunk();
 	void ReRenderChunk();
@@ -28,7 +28,8 @@ public:
 
 	static const uint8 Dimensions = 16;
 	static const uint16 NumberOfVoxels = Dimensions * Dimensions * Dimensions;
-	const FColor* atlas;
+
+	TArray<FColor> *colorAtlas;
 
 private:
 	TArray<FVector> Vertices;

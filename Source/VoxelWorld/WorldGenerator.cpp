@@ -21,23 +21,47 @@ void AWorldGenerator::BeginPlay()
 	oldPlayerX = (int)floor(player->GetTransform().GetLocation().X / chunkSize);
 	oldPlayerY = (int)floor(player->GetTransform().GetLocation().Y / chunkSize);
 
-	//Texture.
-	defaultAtlas = static_cast<FColor*>(defaultAtlas_UTexture2D->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_ONLY));
+	readTexute();
 }
 
-void AWorldGenerator::PostActorCreated()
+void AWorldGenerator::readTexute()
 {
-	Super::PostActorCreated();
-}
+	int TextureInFileSize = defaultAtlas_UTexture2D->GetSizeX(); //the width of the texture
+	colorAtlas.Init(FColor(0, 0, 0, 255), TextureInFileSize * TextureInFileSize);//making sure it has something, and sizing the array n*n
+	//init TArray
+	//What i want to do is take all the values from Texture File ->to-> TArray of FColors
+	if (!defaultAtlas_UTexture2D) {
+		//Many times i forgot to load the texture in the editor so every time i hit play the editor crashed
+		UE_LOG(LogTemp, Error, TEXT("Missing texture in LevelInfo, please load the mask!"));
+		return; //<---if textureInFile is missing stop execution of the code
+	}
+	if (defaultAtlas_UTexture2D != nullptr) {
+		UE_LOG(LogTemp, Warning, TEXT("Texture in file is :  %d  pixels wide"), TextureInFileSize);
 
-void AWorldGenerator::PostLoad()
-{
-	Super::PostLoad();
-}
+		FTexture2DMipMap& Mip = defaultAtlas_UTexture2D->PlatformData->Mips[0];//A reference 
+		void* Data = Mip.BulkData.Lock(LOCK_READ_WRITE);
+		uint8* raw = NULL;
+		raw = (uint8*)Data;
 
-void AWorldGenerator::EndPlay()
-{
-	defaultAtlas_UTexture2D->PlatformData->Mips[0].BulkData.Unlock();
+		FColor pixel = FColor(0, 0, 0, 255);//used for spliting the data stored in raw form
+
+		//the usual nested loop for reading the pixels
+		for (int y = 0; y < TextureInFileSize; y++) {
+
+			for (int x = 0; x < TextureInFileSize; x++) {
+				//data in the raw var is serialized i think ;)
+				//so a pixel is four consecutive numbers e.g 0,0,0,255
+				//and the following code split the values in single components and store them in a FColor
+				pixel.B = raw[4 * (TextureInFileSize * y + x) + 0];
+				pixel.G = raw[4 * (TextureInFileSize * y + x) + 1];
+				pixel.R = raw[4 * (TextureInFileSize * y + x) + 2];
+				//And then this code iterates over the TArray of FColors and stores them
+				colorAtlas[x + y * TextureInFileSize] = FColor((uint8)pixel.R, (uint8)pixel.G, (uint8)pixel.B, 255);
+			}
+		}
+		Mip.BulkData.Unlock();
+		defaultAtlas_UTexture2D->UpdateResource();
+	}
 }
 
 bool AWorldGenerator::loadChunk(FVector index)
@@ -55,7 +79,7 @@ bool AWorldGenerator::loadChunk(FVector index)
 	FRotator rot = FRotator(0, 0, 0);
 	auto pos = (index * chunkSize);
 	auto v = (AChunk*)GetWorld()->SpawnActor(AChunk::StaticClass(), &pos, &rot);
-	v->Initialize(index, this, material, defaultAtlas);
+	v->Initialize(index, this, material, &colorAtlas);
 	v->SetFolderPath("/Chunks");
 	chunks.Add(v);
 	return true;
@@ -82,13 +106,75 @@ void AWorldGenerator::makeStructures(FVector index)
 	}
 }
 
+bool AWorldGenerator::isReadyForNextStage() {
+	switch (stage)
+	{
+	case AWorldGenerator::LOAD:
+	{
+		int radius = ring + (generationDistance * 2) + 1;
+		for (int z = 0; z <= numZChunks; z++)
+			for (int x = -radius; x <= radius; x++)
+				for (int y = -radius; y <= radius; y++) {
+					FVector index = FVector(x + playerPosX, y + playerPosY, z);
+					AChunk::ChunkStatus s;
+					bool m = doesChunkExist(index, s);
+					if (m) {
+						if (s == AChunk::ChunkStatus::LOAD) {
+							return false;
+						}
+					}
+					else {
+						return false;
+					}
+				}
+
+		return true;
+		break;
+	}
+	case AWorldGenerator::GENERATE:
+	{
+		int distanceToGenChunks = ring + generationDistance + 1;
+		for (auto c : chunks) {
+			int distX = abs(c->chunkIndex.X - playerPosX);
+			int distY = abs(c->chunkIndex.Y - playerPosY);
+
+			if ((distX == distanceToGenChunks && distY <= distanceToGenChunks) ||
+				(distY == distanceToGenChunks && distX <= distanceToGenChunks)) {
+				if (c->status != AChunk::ChunkStatus::DRAW && c->status != AChunk::ChunkStatus::DONE) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+		break;
+	}
+	case AWorldGenerator::DRAW:
+	{
+		for (auto c : chunks) {
+			int distX = abs(c->chunkIndex.X - playerPosX);
+			int distY = abs(c->chunkIndex.Y - playerPosY);
+			if (distY <= ring && distX <= ring) {
+				if (c->status == AChunk::ChunkStatus::DRAW) {
+					return false;
+				}
+			}
+		}
+		return true;
+		break;
+	}
+	default:
+		return false;
+		break;
+	}
+}
+
 // Called every frame
 void AWorldGenerator::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	int playerPosX = (int)floor(player->GetTransform().GetLocation().X / chunkSize);
-	int playerPosY = (int)floor(player->GetTransform().GetLocation().Y / chunkSize);
+	playerPosX = (int)floor(player->GetTransform().GetLocation().X / chunkSize);
+	playerPosY = (int)floor(player->GetTransform().GetLocation().Y / chunkSize);
 
 	// Player moves over chunk boundary.
 	if (playerPosX != oldPlayerX || playerPosY != oldPlayerY) {
@@ -121,7 +207,6 @@ void AWorldGenerator::Tick(float DeltaTime)
 	{
 	case AWorldGenerator::LOAD:
 	{
-
 		int radius = ring + (generationDistance * 2) + 1;
 		for (int z = 0; z <= numZChunks; z++)
 			for (int x = -radius; x <= radius; x++)
@@ -181,73 +266,25 @@ void AWorldGenerator::Tick(float DeltaTime)
 		break;
 	}
 
-	//Check if ready for next stage.
-	bool ready = true;
-	switch (stage)
-	{
-	case AWorldGenerator::LOAD:
-	{
-		int radius = ring + (generationDistance * 2) + 1;
-		for (int z = 0; z <= numZChunks; z++)
-			for (int x = -radius; x <= radius; x++)
-				for (int y = -radius; y <= radius; y++) {
-					FVector index = FVector(x + playerPosX, y + playerPosY, z);
-					AChunk::ChunkStatus s;
-					bool m = doesChunkExist(index, s);
-					if (m) {
-						if (s == AChunk::ChunkStatus::LOAD) {
-							ready = false;
-						}
-					}
-				}
-
-		if (ready) {
+	if (isReadyForNextStage()) {
+		switch (stage)
+		{
+		case AWorldGenerator::LOAD:
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Load Chunk end."));
 			stage = RenderStage::GENERATE;
-		}
-		break;
-	}
-	case AWorldGenerator::GENERATE:
-	{
-		int distanceToGenChunks = ring + generationDistance + 1;
-		for (auto c : chunks) {
-			int distX = abs(c->chunkIndex.X - playerPosX);
-			int distY = abs(c->chunkIndex.Y - playerPosY);
-
-			if ((distX == distanceToGenChunks && distY <= distanceToGenChunks) ||
-				(distY == distanceToGenChunks && distX <= distanceToGenChunks)) {
-				if (c->status != AChunk::ChunkStatus::DRAW && c->status != AChunk::ChunkStatus::DONE) {
-					ready = false;
-				}
-			}
-		}
-
-		if (ready) {
+			break;
+		case AWorldGenerator::GENERATE:
 			stage = RenderStage::DRAW;
-		}
-		break;
-	}
-	case AWorldGenerator::DRAW:
-	{
-		for (auto c : chunks) {
-			int distX = abs(c->chunkIndex.X - playerPosX);
-			int distY = abs(c->chunkIndex.Y - playerPosY);
-			if (distY <= ring && distX <= ring) {
-				if (c->status == AChunk::ChunkStatus::DRAW) {
-					ready = false;
-				}
-			}
-		}
-
-		if (ready) {
+			break;
+		case AWorldGenerator::DRAW:
 			stage = RenderStage::LOAD;
 			ring++;
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Load Chunk start."));
+			break;
+		case AWorldGenerator::NONE:
+			break;
+		default:
+			break;
 		}
-		break;
 	}
-	default:
-		break;
-	}
-
-
-
 }

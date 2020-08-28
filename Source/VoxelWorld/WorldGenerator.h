@@ -35,15 +35,16 @@ public:
 	static const int chunkSize = AVoxel::voxelSize * AChunk::Dimensions;
 
 private:
+	int playerPosX;
+	int playerPosY;
 	int oldPlayerX;
 	int oldPlayerY;
 	int ring = 1; // Used to render around the player in steps
 	int numZChunks = 3;
 	bool hasMoved = false;
 	RenderStage stage = RenderStage::LOAD;
-	bool doesChunkExist(FVector index, AChunk::ChunkStatus& _status);
 
-	FColor *defaultAtlas;
+	TArray<FColor> colorAtlas;
 
 protected:
 	UWorld* WRLD;
@@ -51,12 +52,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void PostActorCreated() override;
-
-	void PostLoad() override;
-
-	virtual void EndPlay();
-
+	void readTexute();
+	bool doesChunkExist(FVector index, AChunk::ChunkStatus& _status);
+	bool isReadyForNextStage();
 	bool loadChunk(FVector index);
 	void makeStructures(FVector index);
 
