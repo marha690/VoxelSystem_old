@@ -16,8 +16,10 @@ AWorldGenerator::AWorldGenerator()
 void AWorldGenerator::BeginPlay()
 {
 	Super::BeginPlay();
+
 	WRLD = GetWorld();
 	verify(WRLD != nullptr);
+
 	oldPlayerX = (int)floor(player->GetTransform().GetLocation().X / chunkSize);
 	oldPlayerY = (int)floor(player->GetTransform().GetLocation().Y / chunkSize);
 
@@ -81,68 +83,53 @@ bool AWorldGenerator::loadChunk(FVector index)
 	return true;
 }
 
-void AWorldGenerator::makeStructures(FVector index)
-{
-	if (chunks.Contains(index)) {
-		chunks[index]->generateStructures();
-	}
-}
-
 bool AWorldGenerator::isReadyForNextStage() {
 	switch (stage)
 	{
 	case AWorldGenerator::LOAD:
 	{
 		int radius = ring + (generationDistance * 2) + 1;
-		for (int z = 0; z <= numZChunks; z++)
-			for (int x = -radius; x <= radius; x++)
-				for (int y = -radius; y <= radius; y++) {
-					FVector index = FVector(x + playerPosX, y + playerPosY, z);
-
-					if (chunks.Contains(index)) {
-						if (chunks[index]->status == AChunk::ChunkStatus::LOAD) {
-							return false;
-						}
-					}
-					else {
-						return false;
-					}
+		for (auto It = chunks.CreateConstIterator(); It; ++It) {
+			int distX = abs(It.Key().X - playerPosX);
+			int distY = abs(It.Key().Y - playerPosY);
+			if (sqrtf(distX * distX + distY * distY) <= radius) {
+				if (It.Value()->status == AChunk::ChunkStatus::LOAD) {
+					return false;
 				}
-
+			}
+		}
 		return true;
 		break;
 	}
 	case AWorldGenerator::GENERATE:
 	{
 		int distanceToGenChunks = ring + generationDistance + 1;
-
-			for (int z = 0; z <= numZChunks; z++)
-				for (int x = -distanceToGenChunks; x <= distanceToGenChunks; x++)
-					for (int y = -distanceToGenChunks; y <= distanceToGenChunks; y++) {
-						FVector index = FVector(x + playerPosX, y + playerPosY, z);
-						if (chunks.Contains(index)) {
-							if (chunks[index]->status != AChunk::ChunkStatus::DRAW && chunks[index]->status != AChunk::ChunkStatus::DONE) {
-								return false;
-							}
-						}
-					}
-
+		for (auto It = chunks.CreateConstIterator(); It; ++It) {
+			int distX = abs(It.Key().X - playerPosX);
+			int distY = abs(It.Key().Y - playerPosY);
+			if (sqrtf(distX * distX + distY * distY) <= distanceToGenChunks) {
+				if (It.Value()->status != AChunk::ChunkStatus::DRAW && It.Value()->status != AChunk::ChunkStatus::DONE) {
+					return false;
+				}
+			}
+		}
 		return true;
 		break;
 	}
 	case AWorldGenerator::DRAW:
 	{
-		for (int z = 0; z <= numZChunks; z++)
-			for (int x = -ring; x <= ring; x++)
-				for (int y = -ring; y <= ring; y++) {
-					FVector index = FVector(x + playerPosX, y + playerPosY, z);
-					if (chunks.Contains(index)) {
-						if (chunks[index]->status == AChunk::ChunkStatus::DRAW) {
-							return false;
-						}
-					}
-				}
+		for (auto It = chunks.CreateConstIterator(); It; ++It) {
+			int distX = abs(It.Key().X - playerPosX);
+			int distY = abs(It.Key().Y - playerPosY);
 
+			//if (distY <= ring && distX <= ring) {
+			if (sqrtf(distX * distX + distY * distY) <= ring) {
+				if (It.Value()->status == AChunk::ChunkStatus::DRAW) {
+					return false;
+					break;
+				}
+			}
+		}
 		return true;
 		break;
 	}
@@ -165,21 +152,21 @@ void AWorldGenerator::Tick(float DeltaTime)
 		oldPlayerY = playerPosY;
 		stage = RenderStage::LOAD;
 		ring = 1;
-	}
 
-	// Delete chunks
-	for (auto It = chunks.CreateConstIterator(); It; ++It)
-	{
-		int maxDistance = renderDistance + (generationDistance * 2) + 1 + 1;
-		// Ads one extra chunk so that small movements over chunk boundaries does not delete/generate chunks.
-		int distX = abs(It.Key().X - playerPosX);
-		int distY = abs(It.Key().Y - playerPosY);
-		if (distX > maxDistance || distY > maxDistance) {
-			chunks.Remove(It.Key());
-			It.Value()->Destroy();
-			break;
+		// Delete chunks
+		for (auto It = chunks.CreateConstIterator(); It; ++It)
+		{
+			int maxDistance = renderDistance + (generationDistance * 2) + 1 + 1;
+			int distX = abs(It.Key().X - playerPosX);
+			int distY = abs(It.Key().Y - playerPosY);
+
+			if (sqrtf(distX * distX + distY * distY) > maxDistance) {
+				chunks.Remove(It.Key());
+				It.Value()->Destroy();
+			}
 		}
 	}
+
 
 	// End rendering when max render distance is reached.
 	if (ring > renderDistance) {
@@ -195,10 +182,12 @@ void AWorldGenerator::Tick(float DeltaTime)
 		for (int z = 0; z <= numZChunks; z++)
 			for (int x = -radius; x <= radius; x++)
 				for (int y = -radius; y <= radius; y++) {
-					FVector index = FVector(x + playerPosX, y + playerPosY, z);
-					bool n = loadChunk(index);
-					if (n)
-						break;
+					if (sqrtf(x * x + y * y) <= radius) {
+						FVector index = FVector(x + playerPosX, y + playerPosY, z);
+						bool n = loadChunk(index);
+						if (n)
+							return;
+					}
 				}
 		break;
 	}
@@ -212,25 +201,23 @@ void AWorldGenerator::Tick(float DeltaTime)
 
 			// Generate all chunks.
 			if (ring == 1) {
-				if (distX <= distanceToGenChunks && distY <= distanceToGenChunks) {
+				if (sqrtf(distX * distX + distY * distY) <= distanceToGenChunks) {
 					if (It.Value()->status == AChunk::ChunkStatus::GENERATE) {
 						It.Value()->generateStructures();
-						break;
+						return;
 					}
 				}
 			}
 			else // Generate only the chunks in the middle of non-rendered chunks.
 			{
-				if ((distX == distanceToGenChunks && distY <= distanceToGenChunks) ||
-					(distY == distanceToGenChunks && distX <= distanceToGenChunks)) {
+				if (ceilf(sqrtf(distX * distX + distY * distY)) == distanceToGenChunks) {
 					if (It.Value()->status == AChunk::ChunkStatus::GENERATE) {
 						It.Value()->generateStructures();
-						break;
+						return;
 					}
 				}
 			}
 		}
-
 		break;
 	}
 	case AWorldGenerator::DRAW:
@@ -240,24 +227,23 @@ void AWorldGenerator::Tick(float DeltaTime)
 			int distX = abs(It.Key().X - playerPosX);
 			int distY = abs(It.Key().Y - playerPosY);
 
-			if (distY <= ring && distX <= ring) {
+			if (sqrtf(distX * distX + distY * distY) <= ring) {
 				if (It.Value()->status == AChunk::ChunkStatus::DRAW) {
 					It.Value()->RenderChunk();
-					break;
+					return;
 				}
 			}
 		}
 		break;
 	}
 	default:
-		break;
+		return;
 	}
 
 	if (isReadyForNextStage()) {
 		switch (stage)
 		{
 		case AWorldGenerator::LOAD:
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Load Chunk end."));
 			stage = RenderStage::GENERATE;
 			break;
 		case AWorldGenerator::GENERATE:
@@ -266,7 +252,6 @@ void AWorldGenerator::Tick(float DeltaTime)
 		case AWorldGenerator::DRAW:
 			stage = RenderStage::LOAD;
 			ring++;
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Load Chunk start."));
 			break;
 		case AWorldGenerator::NONE:
 			break;

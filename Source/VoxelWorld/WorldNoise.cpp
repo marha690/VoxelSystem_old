@@ -29,8 +29,9 @@ float WorldNoise::getGroundHeight(FVector position)
 	f.SetFractalOctaves(1);
 	f.SetInterp(FastNoise::Interp::Linear);
 
-	float adjust = 2.0f;
-	auto val = abs(f.GetPerlin(position.X * adjust, position.Y * adjust)) * 40.0;
+	float adjust = 0.5f;
+	int offset = 213123;
+	auto val = abs(f.GetPerlin(position.X * adjust + offset, position.Y * adjust + offset)) * 40.0;
 	val = floor(val);
 	return val;
 }

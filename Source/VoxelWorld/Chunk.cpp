@@ -34,6 +34,7 @@ void AChunk::BuildChunk()
 }
 
 void AChunk::generateStructures() {
+
 	//Trees
 	if (!featuresCreated)
 	{
@@ -54,7 +55,7 @@ void AChunk::generateStructures() {
 
 void AChunk::RenderChunk()
 {
-	//Move to thread later.
+	//Move to thread later if needed.
 	for (size_t i = 0; i < NumberOfVoxels; i++)
 	{
 		if (!voxels[i].isSolid()) continue;
@@ -250,7 +251,7 @@ void ChunkTask::DoWork()
 			}
 		}
 	}
-	//Update status so that worldGenerator can draw the chunk.
 	chunk->status = chunk->ChunkStatus::GENERATE;
+	return;
 }
 

@@ -26,6 +26,8 @@ public:
 	UPROPERTY(EditAnywhere)
 		int renderDistance = 6;
 	UPROPERTY(EditAnywhere)
+		int numZChunks = 3;
+	UPROPERTY(EditAnywhere)
 		UMaterial *material;
 
 	UPROPERTY(EditAnywhere)
@@ -40,7 +42,6 @@ private:
 	int oldPlayerX;
 	int oldPlayerY;
 	int ring = 1; // Used to render around the player in steps
-	int numZChunks = 3;
 	bool hasMoved = false;
 	RenderStage stage = RenderStage::LOAD;
 
@@ -53,10 +54,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	void readTexute();
-	bool doesChunkExist(FVector index, AChunk::ChunkStatus& _status);
 	bool isReadyForNextStage();
 	bool loadChunk(FVector index);
-	void makeStructures(FVector index);
 
 public:
 	// Called every frame

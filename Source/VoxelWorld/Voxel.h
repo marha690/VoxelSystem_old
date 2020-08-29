@@ -55,29 +55,4 @@ private:
 	void CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32>* triangles, TArray<FVector2D>* uv, TArray<FVector> *normals, TArray<FLinearColor>* vertexColors);
 
 	friend class AChunk;
-
 };
-
-
-
-//class VertexColorManagement
-//{
-//public:
-//	static FColor getColor(int index);
-//	//static const UTexture2D* defaultAtlas;
-//private:
-//
-//	VertexColorManagement();
-//	~VertexColorManagement() {};
-//};
-//
-//FColor AChunk::VertexColorManagement::getColor(int index)
-//{
-//	return FColor();
-//	//return *static_cast<FColor*>(defaultAtlas->PlatformData->Mips[index].BulkData.Lock(LOCK_READ_ONLY));
-//}
-//
-//VertexColorManagement::VertexColorManagement()
-//{
-//	//defaultAtlas = LoadObject<UTexture2D>(NULL, TEXT("/Game/VoxelVertexColorAtlas/Default.Default"), NULL, LOAD_None, NULL);
-//}

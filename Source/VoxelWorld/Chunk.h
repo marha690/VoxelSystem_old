@@ -27,7 +27,7 @@ public:
 	void generateStructures();
 
 	static const uint8 Dimensions = 16;
-	static const uint16 NumberOfVoxels = Dimensions * Dimensions * Dimensions;
+	static const uint32 NumberOfVoxels = Dimensions * Dimensions * Dimensions;
 
 	TArray<FColor> *colorAtlas;
 
@@ -35,7 +35,6 @@ private:
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;
 	TArray<FLinearColor> VertexColors;
-
 	TArray<FVector> Normals;
 	TArray<FVector2D> UV0;
 
