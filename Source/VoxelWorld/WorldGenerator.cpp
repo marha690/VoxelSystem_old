@@ -179,7 +179,7 @@ void AWorldGenerator::Tick(float DeltaTime)
 	case AWorldGenerator::LOAD:
 	{
 		int radius = ring + (generationDistance * 2) + 1;
-		for (int z = 0; z <= numZChunks; z++)
+		for (int z = 0; z < numZChunks; z++)
 			for (int x = -radius; x <= radius; x++)
 				for (int y = -radius; y <= radius; y++) {
 					if (sqrtf(x * x + y * y) <= radius) {

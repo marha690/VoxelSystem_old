@@ -24,7 +24,7 @@ public:
 	UPROPERTY(EditAnywhere)
 		int generationDistance = 3;
 	UPROPERTY(EditAnywhere)
-		int renderDistance = 6;
+		int renderDistance = 16;
 	UPROPERTY(EditAnywhere)
 		int numZChunks = 3;
 	UPROPERTY(EditAnywhere)
