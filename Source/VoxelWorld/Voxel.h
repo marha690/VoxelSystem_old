@@ -1,5 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+//File no longer used.
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -21,17 +23,16 @@ public:
 	};
 
 	AVoxel();
-	AVoxel(BlockType b, FVector pos, int index, AChunk* p);
+	AVoxel(BlockType b, FVector pos, AChunk* p);
 
 	void setVoxelType(BlockType type);
 	bool isSolid() { return solid; }
-	static const int32 voxelSize = 50;
+	static const int32 voxelSize = 35;
 
 private:
 	AChunk* parent;
 	BlockType bType;
 	FVector indexInChunk;
-	uint16 listIndex;
 	bool solid;
 
 	// Vertices

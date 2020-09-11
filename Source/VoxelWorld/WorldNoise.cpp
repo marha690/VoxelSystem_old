@@ -5,35 +5,16 @@
 #include "Noise/noise1234.h"
 #include "Noise/simplexnoise1234.h"
 
-#define VOXEL(a) AVoxel(a, voxelLocalPos, voxelIndex, c)
-
-//Main function to generate the procedural noise for the game.
-void WorldNoise::run(AVoxel &v, FVector position, FVector voxelLocalPos, int voxelIndex, AChunk* c)
+int WorldNoise::getGroundHeight(int x, int y)
 {
-	int height = getGroundHeight(position);
+	float scale = 0.005f;
+	auto val = (snoise2(x * scale, y * scale) + 1) / 2;
+	auto val2 = (snoise2(x * scale / 2, y * scale / 2) + 1) / 2;
 
-	// Ground
-	if (position.Z > height)
-		v = VOXEL(AVoxel::AIR);
-	else if (position.Z == height)
-		v = VOXEL(AVoxel::GRASS);
-	else
-		v = VOXEL(AVoxel::STONE);
+	double a[3]{ x,y,0 };
 
-	// Trees
-	if (position.Z == floor(height) && voxelLocalPos.X == 15 && voxelLocalPos.Y == 15)
-		v = VOXEL(AVoxel::TREESTART);
-}
+	auto result = val*40 + val2*val2*20;
+	result = abs(result);
 
-float WorldNoise::getGroundHeight(FVector position)
-{
-	float scale= 0.005f;
-	auto val = snoise2(position.X * scale, position.Y * scale);
-
-	val = val * val;
-	val = abs(val);
-
-
-	float height = 30.0f;
-	return val * height;
+	return result;
 }

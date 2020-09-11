@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+//File no longer used.
 
 #include "Voxel.h"
 #include "Chunk.h"
@@ -12,8 +13,8 @@ const FVector2D AVoxel::UV11 = FVector2D(1.f, 1.f);
 AVoxel::AVoxel()
 	: bType(BlockType::AIR), indexInChunk(FVector(-1.f, -1.f, -1.f)), solid(false) {}
 
-AVoxel::AVoxel(BlockType b, FVector pos, int index, AChunk *p)
-	: bType(b), indexInChunk(pos), listIndex(index), parent(p)
+AVoxel::AVoxel(BlockType b, FVector pos, AChunk *p)
+	: bType(b), indexInChunk(pos), parent(p)
 {
 	setVoxelType(b);
 
@@ -176,8 +177,9 @@ void AVoxel::CreateQuad(Cubeside side, TArray<FVector>* vertices, TArray<int32> 
 
 FLinearColor AVoxel::getVertexColor()
 {
-	FColor *c = parent->colorAtlas->GetData();
-	return c[(int)bType];
+	//FColor *c = parent->colorAtlas->GetData();
+	//return c[(int)bType];
+	return FColor();
 }
 
 void AVoxel::AddTriangle(int32 V1, int32 V2, int32 V3, TArray<int32>* triangles)

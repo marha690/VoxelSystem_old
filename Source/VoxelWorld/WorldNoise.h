@@ -3,17 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Voxel.h"
-
-class AChunk;
 
 class VOXELWORLD_API WorldNoise
 {
 public:
-	static void run(AVoxel& v, FVector position, FVector voxelLocalPos, int voxelIndex, AChunk* c);
 
+	static int getGroundHeight(int x, int y);
 private:
-	static float getGroundHeight(FVector position);
-
 	WorldNoise() {};
 };

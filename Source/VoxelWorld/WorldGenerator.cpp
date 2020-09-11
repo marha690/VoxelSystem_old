@@ -156,7 +156,7 @@ void AWorldGenerator::Tick(float DeltaTime)
 		// Delete chunks
 		for (auto It = chunks.CreateConstIterator(); It; ++It)
 		{
-			int maxDistance = renderDistance + (generationDistance * 2) + 1 + 1;
+			int maxDistance = renderDistance + (generationDistance * 2) + 1;
 			int distX = abs(It.Key().X - playerPosX);
 			int distY = abs(It.Key().Y - playerPosY);
 
