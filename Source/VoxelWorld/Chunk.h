@@ -80,7 +80,6 @@ private:
 
 	friend class ChunkTask;
 
-	virtual void Tick(float DeltaTime) override;
 };
 
 /******************

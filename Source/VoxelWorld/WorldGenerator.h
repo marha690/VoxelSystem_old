@@ -29,6 +29,10 @@ public:
 		int numZChunks = 3;
 	UPROPERTY(EditAnywhere)
 		UMaterial *material;
+	UPROPERTY(BlueprintReadWrite)
+		bool gameReady = false;
+	UPROPERTY(BlueprintReadWrite)
+		FVector playerStart;
 
 	UPROPERTY(EditAnywhere)
 		UTexture2D* defaultAtlas_UTexture2D;

@@ -87,6 +87,7 @@ void AChunk::RenderChunk()
 			}
 
 	CustomMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UV0, VertexColors, TArray<FProcMeshTangent>(), true); // Texture.
+
 	status = ChunkStatus::DONE;
 }
 
@@ -189,7 +190,6 @@ FVector AChunk::getVoxelWorldPosition(FVector pos)
 {
 	return pos + chunkIndex * FVector(Dimensions, Dimensions, Dimensions);
 }
-
 
 bool AChunk::hasSolidNeighbour(int x, int y, int z)
 {
@@ -390,6 +390,7 @@ void ChunkTask::DoWork()
 				if (globalPosition.Z < height) {
 					chunk->bType[chunk->linearIndex(X, Y, Z)] = VOXEL::STONE;
 				}
+
 			}
 		}
 	}

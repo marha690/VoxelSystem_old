@@ -1,8 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "WorldGenerator.h"
+
+//Chunks
 #include "Chunk.h"
-#include "UObject/ConstructorHelpers.h"
+#include "WorldNoise.h"
 
 
 // Sets default values
@@ -143,6 +145,13 @@ bool AWorldGenerator::isReadyForNextStage() {
 void AWorldGenerator::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+
+	if (ring == 3 && gameReady == false) {
+		playerStart = FVector(0, 0, WorldNoise::getGroundHeight(0, 0));
+		gameReady = true;
+	}
+
 	playerPosX = (int)floor(player->GetTransform().GetLocation().X / chunkSize);
 	playerPosY = (int)floor(player->GetTransform().GetLocation().Y / chunkSize);
 
