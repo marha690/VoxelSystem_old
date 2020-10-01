@@ -79,6 +79,8 @@ private:
 	void CreateQuad(VOXEL::Cubeside side, FVector indexInChunk);
 
 	friend class ChunkTask;
+
+	virtual void Tick(float DeltaTime) override;
 };
 
 /******************
