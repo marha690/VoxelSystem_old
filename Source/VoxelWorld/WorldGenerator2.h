@@ -33,11 +33,13 @@ public:
 	UPROPERTY(EditAnywhere)
 		AActor* player;
 
+	AWorldSlice* GetWorldSlice(FVector2D WSI);
+
 private:
 	UWorld* WRLD;
 
-	TMap<FVector2D, class AWorldSlice*>WorldSlices;
 	int ActiveRenderDistance = 1;
+	TMap<FVector2D, class AWorldSlice*>WorldSlices;
 
 	// Player.
 	FVector2D PlayerAtSlice;

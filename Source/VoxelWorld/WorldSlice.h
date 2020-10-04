@@ -34,11 +34,11 @@ public:
 
 	void RenderChunks();
 
-private:
 	FVector2D SlicePositionIndex; // Chunk based coordinate system.
 	AWorldGenerator2* WorldAsOwner; // Which worldGenerator has generated this slice.
 
-	ChunkData chunk{this};
+	ChunkData chunk[WORLD_PROPERTIES::ChunksInHeight];
+private:
 	UProceduralMeshComponent* CustomMesh;
 
 };

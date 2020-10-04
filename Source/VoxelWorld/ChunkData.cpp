@@ -2,6 +2,8 @@
 
 
 #include "ChunkData.h"
+#include "WorldSlice.h"
+#include "WorldGenerator2.h"
 
 
 const FVector2D ChunkData::UV00 = FVector2D(0.f, 0.f);
@@ -9,9 +11,16 @@ const FVector2D ChunkData::UV10 = FVector2D(1.f, 0.f);
 const FVector2D ChunkData::UV01 = FVector2D(0.f, 1.f);
 const FVector2D ChunkData::UV11 = FVector2D(1.f, 1.f);
 
-ChunkData::ChunkData(AWorldSlice* Owner)
+ChunkData::ChunkData()
+{
+	SliceAsOwner = nullptr;
+	ZPos = -1;
+}
+
+ChunkData::ChunkData(AWorldSlice* Owner, int Z)
 {
 	SliceAsOwner = Owner;
+	ZPos = Z;
 }
 
 ChunkData::~ChunkData()
@@ -24,21 +33,20 @@ void ChunkData::UpdateMeshData()
 		for (int X = 0; X < WORLD_PROPERTIES::VoxelsPerChunkDimension; X++)
 			for (int Z = 0; Z < WORLD_PROPERTIES::VoxelsPerChunkDimension; Z++) {
 
-				//TODO: AIR
-				//if (!isSolid(bType[linearIndex(X, Y, Z)])) continue;
-				FVector voxelPos = FVector(X, Y, Z);
+				if (!IsSolid(bType[linearIndex(X, Y, Z)])) continue;
 
-				//if (!hasSolidNeighbour(voxelPos.X - 1, voxelPos.Y, voxelPos.Z))
+				FVector voxelPos = FVector(X, Y, Z);
+				if (!HasSolidNeighbour(voxelPos.X - 1, voxelPos.Y, voxelPos.Z))
 					CreateQuad(BACK, voxelPos);
-				//if (!hasSolidNeighbour(voxelPos.X + 1, voxelPos.Y, voxelPos.Z))
+				if (!HasSolidNeighbour(voxelPos.X + 1, voxelPos.Y, voxelPos.Z))
 					CreateQuad(FRONT, voxelPos);
-				//if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y - 1, voxelPos.Z))
+				if (!HasSolidNeighbour(voxelPos.X, voxelPos.Y - 1, voxelPos.Z))
 					CreateQuad(LEFT, voxelPos);
-				//if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y + 1, voxelPos.Z))
+				if (!HasSolidNeighbour(voxelPos.X, voxelPos.Y + 1, voxelPos.Z))
 					CreateQuad(RIGHT, voxelPos);
-				//if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y, voxelPos.Z + 1))
+				if (!HasSolidNeighbour(voxelPos.X, voxelPos.Y, voxelPos.Z + 1))
 					CreateQuad(TOP, voxelPos);
-				//if (!hasSolidNeighbour(voxelPos.X, voxelPos.Y, voxelPos.Z - 1))
+				if (!HasSolidNeighbour(voxelPos.X, voxelPos.Y, voxelPos.Z - 1))
 					CreateQuad(BOTTOM, voxelPos);
 			}
 }
@@ -55,6 +63,15 @@ void ChunkData::CreateQuad(Cubeside side, FVector indexInChunk)
 	FVector p5 = FVector(WORLD_PROPERTIES::VoxelSize + indexInChunk.X * WORLD_PROPERTIES::VoxelSize, 0 + indexInChunk.Y * WORLD_PROPERTIES::VoxelSize, WORLD_PROPERTIES::VoxelSize + indexInChunk.Z * WORLD_PROPERTIES::VoxelSize); //upper front left - 5
 	FVector p6 = FVector(WORLD_PROPERTIES::VoxelSize + indexInChunk.X * WORLD_PROPERTIES::VoxelSize, WORLD_PROPERTIES::VoxelSize + indexInChunk.Y * WORLD_PROPERTIES::VoxelSize, WORLD_PROPERTIES::VoxelSize + indexInChunk.Z * WORLD_PROPERTIES::VoxelSize); //upper front right - 6
 	FVector p7 = FVector(WORLD_PROPERTIES::VoxelSize + indexInChunk.X * WORLD_PROPERTIES::VoxelSize, WORLD_PROPERTIES::VoxelSize + indexInChunk.Y * WORLD_PROPERTIES::VoxelSize, 0 + indexInChunk.Z * WORLD_PROPERTIES::VoxelSize); //lower front right - 7
+
+	p0 += FVector(0.f, 0.f, ZPos * WORLD_PROPERTIES::ChunkRealSize);
+	p1 += FVector(0.f, 0.f, ZPos * WORLD_PROPERTIES::ChunkRealSize);
+	p2 += FVector(0.f, 0.f, ZPos * WORLD_PROPERTIES::ChunkRealSize);
+	p3 += FVector(0.f, 0.f, ZPos * WORLD_PROPERTIES::ChunkRealSize);
+	p4 += FVector(0.f, 0.f, ZPos * WORLD_PROPERTIES::ChunkRealSize);
+	p5 += FVector(0.f, 0.f, ZPos * WORLD_PROPERTIES::ChunkRealSize);
+	p6 += FVector(0.f, 0.f, ZPos * WORLD_PROPERTIES::ChunkRealSize);
+	p7 += FVector(0.f, 0.f, ZPos * WORLD_PROPERTIES::ChunkRealSize);
 
 	//Vertex Color
 	//FColor* c = colorAtlas->GetData();
@@ -197,4 +214,100 @@ void ChunkData::AddTriangle(int32 V1, int32 V2, int32 V3)
 	Triangles.Add(V1);
 	Triangles.Add(V2);
 	Triangles.Add(V3);
+}
+
+bool ChunkData::HasSolidNeighbour(int x, int y, int z)
+{
+	BlockType v = getVoxel(x, y, z);
+	return IsSolid(v);
+}
+
+BlockType& ChunkData::getVoxel(int x, int y, int z)
+{
+	int Dimensions = WORLD_PROPERTIES::VoxelsPerChunkDimension;
+
+	if (x >= Dimensions || y >= Dimensions || z >= Dimensions || x < 0 || y < 0 || z < 0) { // Inside other chunk.
+
+		int newX = x;
+		int newY = y;
+		int newZ = z;
+
+		FVector2D chunkOffset = FVector2D(0, 0);
+		if (x < 0) {
+			chunkOffset -= FVector2D(1, 0);
+			x = ConvertVoxelToLocal(x);
+		}
+		else if (x > Dimensions - 1) {
+			chunkOffset += FVector2D(1, 0);
+			x = ConvertVoxelToLocal(x);
+		}
+
+		if (y < 0) {
+			chunkOffset -= FVector2D(0, 1);
+			y = ConvertVoxelToLocal(y);
+		}
+		else if (y > Dimensions - 1) {
+			chunkOffset += FVector2D(0, 1);
+			y = ConvertVoxelToLocal(y);
+		}
+
+		int chunkZ = ZPos;
+		if (z < 0) {
+			chunkZ--;
+			z = ConvertVoxelToLocal(z);
+		}
+		else if (z > Dimensions - 1) {
+			chunkZ++;
+			z = ConvertVoxelToLocal(z);
+		}
+		FVector2D SliceIndex = SliceAsOwner->SlicePositionIndex;
+		FVector2D newSliceIndex = SliceIndex + chunkOffset;
+
+		auto slice = SliceAsOwner->WorldAsOwner->GetWorldSlice(newSliceIndex);
+
+		if (slice) {
+			//verify(world->chunks[newChunkIndex]->status != AChunk::ChunkStatus::LOAD);
+
+			int listIndex = linearIndex(x, y, z);
+
+			// Clamp chunkZ to 0 and ChunksInHeight
+			if (chunkZ < 0)
+				chunkZ = 0;
+			if (chunkZ > WORLD_PROPERTIES::ChunksInHeight)
+				chunkZ = WORLD_PROPERTIES::ChunksInHeight;
+
+			return slice->chunk[chunkZ].bType[listIndex]; //TODO check range of chunkZ
+		}
+
+	}
+
+	// Inside this chunk
+	int index = linearIndex(x, y, z);
+	return bType[index];
+}
+
+int ChunkData::ConvertVoxelToLocal(int i)
+{
+	if (i <= -1) {
+		i = WORLD_PROPERTIES::VoxelsPerChunkDimension + i;
+	}
+	else if (i >= WORLD_PROPERTIES::VoxelsPerChunkDimension) {
+		i = i - WORLD_PROPERTIES::VoxelsPerChunkDimension;
+	}
+	return i;
+}
+
+int ChunkData::linearIndex(int x, int y, int z)
+{
+	return x + y * WORLD_PROPERTIES::VoxelsPerChunkDimension + z * WORLD_PROPERTIES::VoxelsPerChunkDimension * WORLD_PROPERTIES::VoxelsPerChunkDimension;
+}
+
+bool ChunkData::IsSolid(BlockType v)
+{
+	if (v == VOXEL::AIR) {
+		return false;
+	}
+	else {
+		return true;
+	}
 }

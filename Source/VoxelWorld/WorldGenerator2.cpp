@@ -46,6 +46,15 @@ void AWorldGenerator2::Tick(float DeltaTime)
 	}
 }
 
+AWorldSlice* AWorldGenerator2::GetWorldSlice(FVector2D WSI)
+{
+	if (WorldSlices.Contains(WSI)) {
+		return WorldSlices[WSI];
+	}
+	else
+		return nullptr;
+}
+
 bool AWorldGenerator2::HasPlayerCrossedChunks()
 {
 	if (PlayerAtSlice.X != OldPlayerAtSlice.X || PlayerAtSlice.Y != OldPlayerAtSlice.Y)

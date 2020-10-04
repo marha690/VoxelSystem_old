@@ -27,11 +27,13 @@ class VOXELWORLD_API ChunkData
 public:
 	const static enum Cubeside { BOTTOM, TOP, LEFT, RIGHT, FRONT, BACK };
 
-	ChunkData(AWorldSlice* Owner);
+	ChunkData();
+	ChunkData(AWorldSlice* Owner, int Z);
 	~ChunkData();
 
-	VOXEL::BlockType bType[WORLD_PROPERTIES::VoxelsInChunk]{ VOXEL::STONE }; //data in chunk
+	VOXEL::BlockType bType[WORLD_PROPERTIES::VoxelsInChunk]{ VOXEL::AIR }; //data in chunk
 	AWorldSlice* SliceAsOwner;
+	int ZPos;
 
 	// UVs
 	static const FVector2D UV00;
@@ -49,6 +51,13 @@ public:
 	void UpdateMeshData();
 	void CreateQuad(Cubeside side, FVector indexInChunk);
 	void AddTriangle(int32 V1, int32 V2, int32 V3);
+
+	//Voxel
+	bool HasSolidNeighbour(int x, int y, int z);
+	BlockType& getVoxel(int x, int y, int z);
+	int ConvertVoxelToLocal(int i);
+	int linearIndex(int x, int y, int z);
+	bool IsSolid(BlockType v);
 
 
 };
