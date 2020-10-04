@@ -11,10 +11,13 @@ int WorldNoise::getGroundHeight(int x, int y)
 	auto val = (snoise2(x * scale, y * scale) + 1) / 2;
 	auto val2 = (snoise2(x * scale / 2, y * scale / 2) + 1) / 2;
 
-	double a[3]{ x,y,0 };
+	auto height1 = (snoise2(x * scale, y * scale) + 1) / 2;
+	auto height2 = (snoise2(x * scale * 2, y * scale * 2) + 1) / 2;
+	auto height3 = (snoise2(x * scale * 4, y * scale * 4) + 1) / 2;
+	auto result = 1 * height1 + 0.5 * height2 + 0.25 * height3;
+	result = pow(result, 2.0);
 
-	auto result = val*40 + val2*val2*20;
-	result = abs(result);
+	result = result * 30;
 
 	return result;
 }
