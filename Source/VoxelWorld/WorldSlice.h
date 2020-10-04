@@ -22,16 +22,16 @@ public:
 	AWorldSlice();
 	void Initialize(FVector2D SPI, AWorldGenerator2* WRLD);
 
-
+	bool isTerrainGenerated = false;
+	bool isRendered = false;
 protected:
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
+	void GenerateTerrainFromNoise( int (*f)(int, int));
 	void RenderChunks();
 
 	FVector2D SlicePositionIndex; // Chunk based coordinate system.

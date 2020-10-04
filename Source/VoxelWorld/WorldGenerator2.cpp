@@ -5,6 +5,7 @@
 
 #include "WorldSlice.h"
 #include "WorldProperties.h"
+#include "TerrainNoise.h"
 
 // Sets default values
 AWorldGenerator2::AWorldGenerator2()
@@ -34,6 +35,7 @@ void AWorldGenerator2::Tick(float DeltaTime)
 
 
 	GenerateNewWorldSlices();
+	GenerateTerrainNoise();
 
 	if(ActiveRenderDistance < renderDistance) {
 		++ActiveRenderDistance; 
@@ -65,23 +67,64 @@ bool AWorldGenerator2::HasPlayerCrossedChunks()
 
 void AWorldGenerator2::DeleteUnnecessaryWorldSlices()
 {
-	// TODO.
+	for (auto It = WorldSlices.CreateConstIterator(); It; ++It)
+	{
+		int x = It.Value()->SlicePositionIndex.X;
+		int y = It.Value()->SlicePositionIndex.Y;
+
+		if (abs(x - PlayerAtSlice.X) > renderDistance ||
+			abs(y - PlayerAtSlice.Y) > renderDistance) {
+
+			WorldSlices.Remove(It.Key());
+			It.Value()->Destroy();
+		}
+	}
 }
 
 void AWorldGenerator2::GenerateNewWorldSlices()
 {
-	for (int z = 0; z < WORLD_PROPERTIES::ChunksInHeight; z++)
-		for (int x = -ActiveRenderDistance; x <= ActiveRenderDistance; x++)
-			for (int y = -ActiveRenderDistance; y <= ActiveRenderDistance; y++) {
-				
-				FVector2D WorldSliceindex = FVector2D(x + PlayerAtSlice.X, y + PlayerAtSlice.Y);
-					
-				if (!DoesWorldSliceExist(WorldSliceindex)) {
-					GenerateWorldSlice(WorldSliceindex);
-					WorldSlices[WorldSliceindex]->RenderChunks();
-					break;
-				}
+	for (int x = -ActiveRenderDistance - 1; x <= ActiveRenderDistance + 1; x++)
+		for (int y = -ActiveRenderDistance - 1; y <= ActiveRenderDistance + 1; y++) {
+
+			FVector2D WorldSliceIndex = FVector2D(x + PlayerAtSlice.X, y + PlayerAtSlice.Y);
+			if (!DoesWorldSliceExist(WorldSliceIndex)) {
+				GenerateWorldSlice(WorldSliceIndex);
 			}
+		}
+}
+
+void AWorldGenerator2::GenerateTerrainNoise()
+{
+	UTerrainNoise* noise = NewObject<UTerrainNoise>(TerrainNoise);
+
+	// Generate terrain
+	for (int x = -ActiveRenderDistance; x <= ActiveRenderDistance - 1; x++)
+		for (int y = -ActiveRenderDistance; y <= ActiveRenderDistance - 1; y++) {
+			FVector2D WorldSliceIndex = FVector2D(x + PlayerAtSlice.X, y + PlayerAtSlice.Y);
+
+			if (DoesWorldSliceExist(WorldSliceIndex) && !WorldSlices[WorldSliceIndex]->isTerrainGenerated) {
+				WorldSlices[WorldSliceIndex]->isTerrainGenerated = true;
+				WorldSlices[WorldSliceIndex]->GenerateTerrainFromNoise(noise->generate2DHeightMap);
+				break;
+			}
+		}
+
+	// Render mesh
+	for (int x = -ActiveRenderDistance; x <= ActiveRenderDistance - 1; x++)
+		for (int y = -ActiveRenderDistance; y <= ActiveRenderDistance - 1; y++) {
+			FVector2D WorldSliceIndex = FVector2D(x + PlayerAtSlice.X, y + PlayerAtSlice.Y);
+			FVector2D WorldSliceIndexPx = FVector2D(x + PlayerAtSlice.X + 1, y + PlayerAtSlice.Y);
+			FVector2D WorldSliceIndexMx = FVector2D(x + PlayerAtSlice.X - 1, y + PlayerAtSlice.Y);
+			FVector2D WorldSliceIndexPy = FVector2D(x + PlayerAtSlice.X, y + PlayerAtSlice.Y + 1);
+			FVector2D WorldSliceIndexMy = FVector2D(x + PlayerAtSlice.X, y + PlayerAtSlice.Y - 1);
+
+			if (DoesWorldSliceExist(WorldSliceIndex) && !WorldSlices[WorldSliceIndex]->isRendered && WorldSlices[WorldSliceIndexPx]->isTerrainGenerated)
+				if (DoesWorldSliceExist(WorldSliceIndexPx) && WorldSlices[WorldSliceIndexPx]->isTerrainGenerated)
+					if (DoesWorldSliceExist(WorldSliceIndexMx) && WorldSlices[WorldSliceIndexMx]->isTerrainGenerated)
+						if (DoesWorldSliceExist(WorldSliceIndexPy) && WorldSlices[WorldSliceIndexPy]->isTerrainGenerated)
+							if (DoesWorldSliceExist(WorldSliceIndexMy) && WorldSlices[WorldSliceIndexMy]->isTerrainGenerated)
+								WorldSlices[WorldSliceIndex]->RenderChunks();
+		}
 }
 
 bool AWorldGenerator2::DoesWorldSliceExist(FVector2D WSI)

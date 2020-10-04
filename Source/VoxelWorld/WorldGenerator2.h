@@ -9,6 +9,8 @@
 
 #include "WorldGenerator2.generated.h"
 
+class UTerrainNoise;
+
 UCLASS()
 class VOXELWORLD_API AWorldGenerator2 : public AActor
 {
@@ -33,6 +35,9 @@ public:
 	UPROPERTY(EditAnywhere)
 		AActor* player;
 
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<UTerrainNoise> TerrainNoise;
+
 	AWorldSlice* GetWorldSlice(FVector2D WSI);
 
 private:
@@ -50,6 +55,8 @@ private:
 	void DeleteUnnecessaryWorldSlices();
 
 	void GenerateNewWorldSlices();
+	void GenerateTerrainNoise();
+
 	bool DoesWorldSliceExist(FVector2D WSI);
 	void GenerateWorldSlice(FVector2D WSI); // No check in this function if it already exist!
 

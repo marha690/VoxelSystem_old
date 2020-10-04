@@ -19,13 +19,7 @@ AWorldSlice::AWorldSlice()
 		//Set correct values to the chunks.
 		chunk[i].SliceAsOwner = this;
 		chunk[i].ZPos = i;
-		chunk[i].getVoxel(10, 10, 10) = VOXEL::STONE;
-		chunk[i].getVoxel(10, 11, 10) = VOXEL::STONE;
-		chunk[i].getVoxel(11, 11, 10) = VOXEL::STONE;
-
-		chunk[i].getVoxel(3, 3, 0) = VOXEL::STONE;
-		chunk[i].getVoxel(3, 3, 31) = VOXEL::STONE;
-
+		chunk[i].getVoxel(0, 0, 0) = VOXEL::STONE; //?
 	}
 }
 
@@ -41,11 +35,23 @@ void AWorldSlice::BeginPlay()
 	Super::BeginPlay();
 }
 
-// Called every frame
-void AWorldSlice::Tick(float DeltaTime)
+void AWorldSlice::GenerateTerrainFromNoise(int (*f)(int, int))
 {
-	Super::Tick(DeltaTime);
-
+	for (int x = 0; x < WORLD_PROPERTIES::VoxelsPerChunkDimension; x++)
+		for (int y = 0; y < WORLD_PROPERTIES::VoxelsPerChunkDimension; y++)
+		{
+			int h = f(x + SlicePositionIndex.X * WORLD_PROPERTIES::VoxelsPerChunkDimension,
+					  y + SlicePositionIndex.Y * WORLD_PROPERTIES::VoxelsPerChunkDimension);
+			for (int i = 0; i < WORLD_PROPERTIES::ChunksInHeight; i++) {
+				int c = 0;
+				while (h > c + i * WORLD_PROPERTIES::VoxelsPerChunkDimension && c < WORLD_PROPERTIES::VoxelsPerChunkDimension)
+				{
+					//chunk[i].getVoxel(x, y, (c % WORLD_PROPERTIES::VoxelsPerChunkDimension) ) = VOXEL::STONE;
+					chunk[i].setVoxel(VOXEL::STONE, x, y, (c % WORLD_PROPERTIES::VoxelsPerChunkDimension));
+					++c;
+				}
+			}
+		}
 }
 
 void AWorldSlice::RenderChunks()
@@ -55,5 +61,6 @@ void AWorldSlice::RenderChunks()
 		chunk[i].UpdateMeshData();
 		CustomMesh->CreateMeshSection_LinearColor(i, chunk[i].Vertices, chunk[i].Triangles, chunk[i].Normals, chunk[i].UV0, chunk[i].VertexColors, TArray<FProcMeshTangent>(), true);
 	}
+	isRendered = true;
 }
 

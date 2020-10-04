@@ -9,5 +9,5 @@ namespace WORLD_PROPERTIES {
 	static const int VoxelsPerChunkDimension = 32;
 	static const int VoxelsInChunk = VoxelsPerChunkDimension * VoxelsPerChunkDimension * VoxelsPerChunkDimension;
 	static const int ChunkRealSize = VoxelsPerChunkDimension * VoxelSize;
-	static const int ChunksInHeight = 3;
+	static const int ChunksInHeight = 8;
 }

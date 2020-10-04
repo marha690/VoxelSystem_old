@@ -5,7 +5,6 @@
 #include "WorldSlice.h"
 #include "WorldGenerator2.h"
 
-
 const FVector2D ChunkData::UV00 = FVector2D(0.f, 0.f);
 const FVector2D ChunkData::UV10 = FVector2D(1.f, 0.f);
 const FVector2D ChunkData::UV01 = FVector2D(0.f, 1.f);
@@ -222,11 +221,33 @@ bool ChunkData::HasSolidNeighbour(int x, int y, int z)
 	return IsSolid(v);
 }
 
+void ChunkData::setVoxel(VOXEL::BlockType v, int x, int y, int z)
+{
+	int index = linearIndex(x, y, z);
+	bType[index] = v;
+	SliceAsOwner->isRendered = false;
+}
+
 BlockType& ChunkData::getVoxel(int x, int y, int z)
 {
 	int Dimensions = WORLD_PROPERTIES::VoxelsPerChunkDimension;
 
-	if (x >= Dimensions || y >= Dimensions || z >= Dimensions || x < 0 || y < 0 || z < 0) { // Inside other chunk.
+	//Move up and down in the chunks inside the world slice if needed.
+	if (z < 0) {
+		if (ZPos == 0)
+			return blockade;
+		z = ConvertVoxelToLocal(z);
+		return SliceAsOwner->chunk[ZPos - 1].getVoxel(x, y, z);
+	}
+	else if (z > Dimensions - 1) {
+		if (ZPos == WORLD_PROPERTIES::ChunksInHeight)
+			return blockade;
+		z = ConvertVoxelToLocal(z);
+		return SliceAsOwner->chunk[ZPos + 1].getVoxel(x, y, z);
+	}
+
+	//Jump to other slices.
+	if (x >= Dimensions || y >= Dimensions || x < 0 || y < 0) { // Inside other chunk.
 
 		int newX = x;
 		int newY = y;
@@ -251,32 +272,13 @@ BlockType& ChunkData::getVoxel(int x, int y, int z)
 			y = ConvertVoxelToLocal(y);
 		}
 
-		int chunkZ = ZPos;
-		if (z < 0) {
-			chunkZ--;
-			z = ConvertVoxelToLocal(z);
-		}
-		else if (z > Dimensions - 1) {
-			chunkZ++;
-			z = ConvertVoxelToLocal(z);
-		}
-		FVector2D SliceIndex = SliceAsOwner->SlicePositionIndex;
-		FVector2D newSliceIndex = SliceIndex + chunkOffset;
+		FVector2D SliceIndex = SliceAsOwner->SlicePositionIndex + chunkOffset;
 
-		auto slice = SliceAsOwner->WorldAsOwner->GetWorldSlice(newSliceIndex);
+		auto slice = SliceAsOwner->WorldAsOwner->GetWorldSlice(SliceIndex);
 
 		if (slice) {
-			//verify(world->chunks[newChunkIndex]->status != AChunk::ChunkStatus::LOAD);
-
 			int listIndex = linearIndex(x, y, z);
-
-			// Clamp chunkZ to 0 and ChunksInHeight
-			if (chunkZ < 0)
-				chunkZ = 0;
-			if (chunkZ > WORLD_PROPERTIES::ChunksInHeight)
-				chunkZ = WORLD_PROPERTIES::ChunksInHeight;
-
-			return slice->chunk[chunkZ].bType[listIndex]; //TODO check range of chunkZ
+			return slice->chunk[ZPos].bType[listIndex];
 		}
 
 	}

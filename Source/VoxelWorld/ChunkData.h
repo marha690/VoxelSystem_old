@@ -9,6 +9,7 @@ namespace VOXEL {
 	
 	const static enum BlockType {
 		AIR = 0,
+		BLOCKADE,
 		STONE,
 		GRASS,
 		WOOD,
@@ -31,7 +32,6 @@ public:
 	ChunkData(AWorldSlice* Owner, int Z);
 	~ChunkData();
 
-	VOXEL::BlockType bType[WORLD_PROPERTIES::VoxelsInChunk]{ VOXEL::AIR }; //data in chunk
 	AWorldSlice* SliceAsOwner;
 	int ZPos;
 
@@ -54,10 +54,13 @@ public:
 
 	//Voxel
 	bool HasSolidNeighbour(int x, int y, int z);
+	void setVoxel(VOXEL::BlockType v, int x, int y, int z);
 	BlockType& getVoxel(int x, int y, int z);
 	int ConvertVoxelToLocal(int i);
 	int linearIndex(int x, int y, int z);
 	bool IsSolid(BlockType v);
 
-
+private:
+	VOXEL::BlockType bType[WORLD_PROPERTIES::VoxelsInChunk]{ VOXEL::AIR }; //data in chunk
+	BlockType blockade = VOXEL::BLOCKADE;
 };
