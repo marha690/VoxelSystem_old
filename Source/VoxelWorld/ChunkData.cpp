@@ -72,10 +72,8 @@ void ChunkData::CreateQuad(Cubeside side, FVector indexInChunk)
 	p6 += FVector(0.f, 0.f, ZPos * WORLD_PROPERTIES::ChunkRealSize);
 	p7 += FVector(0.f, 0.f, ZPos * WORLD_PROPERTIES::ChunkRealSize);
 
-	//Vertex Color
-	//FColor* c = colorAtlas->GetData();
-	//int index = (int)bType[linearIndex(indexInChunk.X, indexInChunk.Y, indexInChunk.Z)];
-	//FColor color = c[index];
+	// Vertex Color
+	FColor color = GetColor(linearIndex(indexInChunk));
 
 	switch (side)
 	{
@@ -95,10 +93,10 @@ void ChunkData::CreateQuad(Cubeside side, FVector indexInChunk)
 		Normals.Add(FVector::DownVector);
 		AddTriangle(startIndex, startIndex + 1, startIndex + 2);
 		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
 		break;
 	case TOP:
 		//Top face
@@ -116,10 +114,10 @@ void ChunkData::CreateQuad(Cubeside side, FVector indexInChunk)
 		Normals.Add(FVector::UpVector);
 		AddTriangle(startIndex, startIndex + 1, startIndex + 2);
 		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
 		break;
 	case LEFT:
 		//Left face of cube
@@ -137,10 +135,10 @@ void ChunkData::CreateQuad(Cubeside side, FVector indexInChunk)
 		Normals.Add(FVector::LeftVector);
 		AddTriangle(startIndex, startIndex + 1, startIndex + 2);
 		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
 		break;
 	case RIGHT:
 		//Right face of cube
@@ -158,10 +156,10 @@ void ChunkData::CreateQuad(Cubeside side, FVector indexInChunk)
 		Normals.Add(FVector::RightVector);
 		AddTriangle(startIndex, startIndex + 1, startIndex + 2);
 		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
 		break;
 	case FRONT:
 		//Right face of cube
@@ -179,10 +177,10 @@ void ChunkData::CreateQuad(Cubeside side, FVector indexInChunk)
 		Normals.Add(FVector::ForwardVector);
 		AddTriangle(startIndex, startIndex + 1, startIndex + 2);
 		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
 		break;
 	case BACK:
 		//Back face of cube
@@ -200,10 +198,10 @@ void ChunkData::CreateQuad(Cubeside side, FVector indexInChunk)
 		Normals.Add(FVector::BackwardVector);
 		AddTriangle(startIndex, startIndex + 1, startIndex + 2);
 		AddTriangle(startIndex + 3, startIndex + 2, startIndex + 1);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
-		//VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
+		VertexColors.Add(color);
 		break;
 	}
 }
@@ -288,6 +286,18 @@ BlockType& ChunkData::getVoxel(int x, int y, int z)
 	return bType[index];
 }
 
+FColor ChunkData::GetColor(int LinearIndex)
+{
+	auto blockType = bType[LinearIndex];
+
+	if (blockType == BlockType::GRASS)
+		return FColor(96, 128, 56);
+	if (blockType == BlockType::STONE)
+		return FColor(153, 153, 153);
+
+	return FColor();
+}
+
 int ChunkData::ConvertVoxelToLocal(int i)
 {
 	if (i <= -1) {
@@ -302,6 +312,11 @@ int ChunkData::ConvertVoxelToLocal(int i)
 int ChunkData::linearIndex(int x, int y, int z)
 {
 	return x + y * WORLD_PROPERTIES::VoxelsPerChunkDimension + z * WORLD_PROPERTIES::VoxelsPerChunkDimension * WORLD_PROPERTIES::VoxelsPerChunkDimension;
+}
+
+int ChunkData::linearIndex(FVector Pos)
+{
+	return linearIndex(Pos.X, Pos.Y, Pos.Z);
 }
 
 bool ChunkData::IsSolid(BlockType v)

@@ -3,6 +3,7 @@
 
 #include "WorldSlice.h"
 #include "ChunkData.h"
+#include "WorldGenerator2.h"
 
 // Sets default values
 AWorldSlice::AWorldSlice()
@@ -19,7 +20,6 @@ AWorldSlice::AWorldSlice()
 		//Set correct values to the chunks.
 		chunk[i].SliceAsOwner = this;
 		chunk[i].ZPos = i;
-		chunk[i].getVoxel(0, 0, 0) = VOXEL::STONE; //?
 	}
 }
 
@@ -27,6 +27,10 @@ void AWorldSlice::Initialize(FVector2D SPI, AWorldGenerator2* WRLD)
 {
 	SlicePositionIndex = SPI;
 	WorldAsOwner = WRLD;
+
+	UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(WorldAsOwner->material, this);
+	for (int i = 0; i < WORLD_PROPERTIES::ChunksInHeight; i++)
+		CustomMesh->SetMaterial(i, DynMaterial);
 }
 
 // Called when the game starts or when spawned
@@ -46,12 +50,60 @@ void AWorldSlice::GenerateTerrainFromNoise(int (*f)(int, int))
 				int c = 0;
 				while (h > c + i * WORLD_PROPERTIES::VoxelsPerChunkDimension && c < WORLD_PROPERTIES::VoxelsPerChunkDimension)
 				{
-					//chunk[i].getVoxel(x, y, (c % WORLD_PROPERTIES::VoxelsPerChunkDimension) ) = VOXEL::STONE;
-					chunk[i].setVoxel(VOXEL::STONE, x, y, (c % WORLD_PROPERTIES::VoxelsPerChunkDimension));
+					if (h > c + 3)
+						chunk[i].setVoxel(VOXEL::STONE, x, y, (c % WORLD_PROPERTIES::VoxelsPerChunkDimension));
+					else 
+						chunk[i].setVoxel(VOXEL::GRASS, x, y, (c % WORLD_PROPERTIES::VoxelsPerChunkDimension));
+
+
 					++c;
 				}
 			}
 		}
+}
+
+void AWorldSlice::GenerateStructures()
+{
+	auto data = WorldAsOwner->GetStructureData(SlicePositionIndex);
+
+	if (data.Type == StructureType::Village) {
+		for (int i = 0; i < WORLD_PROPERTIES::ChunksInHeight; i++) {
+			chunk[i].setVoxel(VOXEL::STONE, 10, 10, 10);
+			chunk[i].setVoxel(VOXEL::STONE, 10, 9, 10);
+			chunk[i].setVoxel(VOXEL::STONE, 10, 11, 10);
+
+			chunk[i].setVoxel(VOXEL::STONE, 10, 9, 11);
+			chunk[i].setVoxel(VOXEL::STONE, 10, 11, 11);
+			chunk[i].setVoxel(VOXEL::STONE, 10, 9, 12);
+			chunk[i].setVoxel(VOXEL::STONE, 10, 11, 12);
+			chunk[i].setVoxel(VOXEL::STONE, 10, 9, 13);
+			chunk[i].setVoxel(VOXEL::STONE, 10, 11, 13);
+
+			chunk[i].setVoxel(VOXEL::STONE, 10, 10, 14);
+			chunk[i].setVoxel(VOXEL::STONE, 10, 9, 14);
+			chunk[i].setVoxel(VOXEL::STONE, 10, 11, 14);
+		}
+	}
+
+	if (data.Type == StructureType::Tower) {
+		for (int i = 0; i < WORLD_PROPERTIES::ChunksInHeight; i++) {
+			chunk[i].setVoxel(VOXEL::GRASS, 0, 10, 2);
+			chunk[i].setVoxel(VOXEL::GRASS, 0, 10, 3);
+			chunk[i].setVoxel(VOXEL::GRASS, 0, 10, 4);
+			chunk[i].setVoxel(VOXEL::GRASS, 0, 10, 5);
+			chunk[i].setVoxel(VOXEL::GRASS, 0, 10, 6);
+			chunk[i].setVoxel(VOXEL::GRASS, 0, 9, 5);
+		}
+	}
+
+	if (data.Type == StructureType::Cabin) {
+
+			for (int x = 0; x < 32; x++)
+				for (int y = 0; y < 32; y++)
+				{
+					chunk[6].setVoxel(VOXEL::STONE, x, y, 0);
+				}
+	}
 }
 
 void AWorldSlice::RenderChunks()

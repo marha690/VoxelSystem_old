@@ -32,6 +32,7 @@ protected:
 public:	
 
 	void GenerateTerrainFromNoise( int (*f)(int, int));
+	void GenerateStructures();
 	void RenderChunks();
 
 	FVector2D SlicePositionIndex; // Chunk based coordinate system.

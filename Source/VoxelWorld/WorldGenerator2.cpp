@@ -23,6 +23,7 @@ void AWorldGenerator2::BeginPlay()
 	WRLD = GetWorld(); // Get current world.
 	verify(WRLD != nullptr);
 	
+	StructureGen = StructuresGenerator(renderDistance);
 }
 
 // Called every frame
@@ -55,6 +56,12 @@ AWorldSlice* AWorldGenerator2::GetWorldSlice(FVector2D WSI)
 	}
 	else
 		return nullptr;
+}
+
+StructureData AWorldGenerator2::GetStructureData(FVector2D Index)
+{
+	StructureGen.GenerateArea(PlayerAtSlice);
+	return StructureGen.GetData(Index);
 }
 
 bool AWorldGenerator2::HasPlayerCrossedChunks()
@@ -105,6 +112,7 @@ void AWorldGenerator2::GenerateTerrainNoise()
 			if (DoesWorldSliceExist(WorldSliceIndex) && !WorldSlices[WorldSliceIndex]->isTerrainGenerated) {
 				WorldSlices[WorldSliceIndex]->isTerrainGenerated = true;
 				WorldSlices[WorldSliceIndex]->GenerateTerrainFromNoise(noise->generate2DHeightMap);
+				WorldSlices[WorldSliceIndex]->GenerateStructures();
 				break;
 			}
 		}

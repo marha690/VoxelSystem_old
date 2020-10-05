@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 
 #include "WorldSlice.h"
+#include "StructuresGenerator.h"
 
 #include "WorldGenerator2.generated.h"
 
@@ -36,15 +37,20 @@ public:
 		AActor* player;
 
 	UPROPERTY(EditAnywhere)
+		UMaterial* material;
+
+	UPROPERTY(EditAnywhere)
 		TSubclassOf<UTerrainNoise> TerrainNoise;
 
 	AWorldSlice* GetWorldSlice(FVector2D WSI);
+	StructureData GetStructureData(FVector2D Index);
 
 private:
 	UWorld* WRLD;
 
 	int ActiveRenderDistance = 1;
 	TMap<FVector2D, class AWorldSlice*>WorldSlices;
+	StructuresGenerator StructureGen;
 
 	// Player.
 	FVector2D PlayerAtSlice;

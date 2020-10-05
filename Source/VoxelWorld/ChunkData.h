@@ -56,8 +56,10 @@ public:
 	bool HasSolidNeighbour(int x, int y, int z);
 	void setVoxel(VOXEL::BlockType v, int x, int y, int z);
 	BlockType& getVoxel(int x, int y, int z);
+	FColor GetColor(int LinearIndex);
 	int ConvertVoxelToLocal(int i);
 	int linearIndex(int x, int y, int z);
+	int linearIndex(FVector Pos);
 	bool IsSolid(BlockType v);
 
 private:
