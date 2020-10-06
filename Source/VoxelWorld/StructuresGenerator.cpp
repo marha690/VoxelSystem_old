@@ -19,79 +19,82 @@ StructuresGenerator::~StructuresGenerator()
 {
 }
 
-void StructuresGenerator::GenerateArea(FVector2D PlayerPosition)
+const StructureData& StructuresGenerator::GetData(FVector2D Index)
 {
-	int dist = RenderDistance + Level1 * 3; //?? not so many needed.
+	if (!DataInSlice.Contains(Index)) {
+		StructureData newData = GenerateData(Index);
+		DataInSlice.Add(Index, newData);
+	}
 
-	//Make new.
-	for (int x = -dist; x <= dist - 1; x++)
-		for (int y = -dist; y <= dist - 1; y++) {
-			FVector2D Index = FVector2D(x + PlayerPosition.X, y + PlayerPosition.Y);
+	return DataInSlice[Index];
+}
 
-			if (!DataInSlice.Contains(Index)) {
-				StructureData newData = GenerateData(Index);
-				DataInSlice.Add(Index, newData);
-			}
+void StructuresGenerator::DeleteGenerationsInSlices(FVector2D PlayerAtSlice)
+{
+	int distance = RenderDistance + Level1Size * 3;
+	for (auto It = DataInSlice.CreateConstIterator(); It; ++It)
+	{
+		int x = It.Key().X;
+		int y = It.Key().Y;
+
+		if (abs(x - PlayerAtSlice.X) > distance ||
+			abs(y - PlayerAtSlice.Y) > distance) {
+
+			DataInSlice.Remove(It.Key()); //Does this remove values data from memory?
 		}
+	}
 }
 
 StructureData StructuresGenerator::GenerateData(FVector2D Index)
 {
-	StructureData data;
+	StructureData data{StructureType::None};
 
-	StructureType t = GetStructureType(Index, Level1, LevelType::One);
+	StructureType t = GetStructureType(Index, Level1Size, 1);
 	if (t == StructureType::None)
-		t = GetStructureType(Index, Level2, LevelType::Two);
+		t = GetStructureType(Index, Level2Size, 2);
 	if (t == StructureType::None)
-		t = GetStructureType(Index, Level3, LevelType::Three);
-
+		t = GetStructureType(Index, Level3Size, 3);
 	data.Type = t;
+
+	if (t != StructureType::None) {
+		GenerateArea(data, Index);
+	}
+
 	return data;
 }
 
-StructureType StructuresGenerator::GetStructureType(FVector2D Index, int DistanceLevel, LevelType t)
+StructureType StructuresGenerator::GetStructureType(FVector2D Index, int Distance, int Level)
 {
 	int maxRandomValue = 100;
 
-	int lvX = 200 + abs((int)Index.X) - abs((int)Index.X) % DistanceLevel;
-	int lvY = 200 + abs((int)Index.Y) - abs((int)Index.Y) % DistanceLevel;
+	int lvX = 200 + abs((int)Index.X) - abs((int)Index.X) % Distance;
+	int lvY = 200 + abs((int)Index.Y) - abs((int)Index.Y) % Distance;
 
 	int rand = chash(lvX, lvY);
 
 	int id = rand % maxRandomValue;
 
-	switch (t)
-	{
-	case One:
-	{
+	if (Level == 1) {
 
-		break;
 	}
-	case Two:
-	{
+	else if (Level == 2) {
 		if (id < 5)
 			return StructureType::Village;
 
-		break;
 	}
-	case Three:
-	{
+	else if (Level == 3) {
 		if (id < 10)
 			return StructureType::Tower;
 		if (id < 20)
 			return StructureType::Cabin;
-
-		break;
-	}
-	default:
-		break;
 	}
 
 	return StructureType::None;
 }
 
-void StructuresGenerator::RemoveGenerationsInSlices()
+void StructuresGenerator::GenerateArea(StructureData Data, FVector2D Index)
 {
+	//TODO: Algorithm for the different types of things inside the area.
 }
 
 int StructuresGenerator::chash(int x, int y) {

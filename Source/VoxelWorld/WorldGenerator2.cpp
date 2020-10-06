@@ -45,6 +45,7 @@ void AWorldGenerator2::Tick(float DeltaTime)
 	if (HasPlayerCrossedChunks()) {
 		ActiveRenderDistance = 1; // Reset render distance.
 		DeleteUnnecessaryWorldSlices();
+		StructureGen.DeleteGenerationsInSlices(PlayerAtSlice); // Remove structures far away.
 		OldPlayerAtSlice = PlayerAtSlice;
 	}
 }
@@ -58,9 +59,8 @@ AWorldSlice* AWorldGenerator2::GetWorldSlice(FVector2D WSI)
 		return nullptr;
 }
 
-StructureData AWorldGenerator2::GetStructureData(FVector2D Index)
+const StructureData& AWorldGenerator2::GetStructureData(FVector2D Index)
 {
-	StructureGen.GenerateArea(PlayerAtSlice);
 	return StructureGen.GetData(Index);
 }
 

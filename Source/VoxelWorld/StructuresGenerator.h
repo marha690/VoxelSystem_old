@@ -7,11 +7,6 @@
 /**
  * 
  */
-enum LevelType {
-	One,
-	Two,
-	Three
-};
 
 enum StructureType
 {
@@ -35,22 +30,23 @@ public:
 	StructuresGenerator(int RenderDist);
 	~StructuresGenerator();
 
-	void GenerateArea(FVector2D PlayerPosition);
-	StructureData GetData(FVector2D index) { return DataInSlice[index]; }
+	const StructureData& GetData(FVector2D Index);
+	void DeleteGenerationsInSlices(FVector2D PlayerAtSlice);
 
 
 private:
 	int RenderDistance;
 
 	int seed = 123;
-	int Level1 = 16; // Largest things.
-	int Level2 = 8;
-	int Level3 = 4;
+	int Level1Size = 16;
+	int Level2Size= 8;
+	int Level3Size = 4; 
 
 	TMap<FVector2D, struct StructureData> DataInSlice;
-
+	
 	StructureData GenerateData(FVector2D Index);
-	StructureType GetStructureType(FVector2D Index, int DistanceLevel, LevelType t);
-	void RemoveGenerationsInSlices();
+	StructureType GetStructureType(FVector2D Index, int Distance, int Level);
+	void GenerateArea(StructureData Data, FVector2D Index);
+
 	int chash(int x, int y);
 };

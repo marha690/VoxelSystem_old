@@ -43,7 +43,7 @@ public:
 		TSubclassOf<UTerrainNoise> TerrainNoise;
 
 	AWorldSlice* GetWorldSlice(FVector2D WSI);
-	StructureData GetStructureData(FVector2D Index);
+	const StructureData& GetStructureData(FVector2D Index);
 
 private:
 	UWorld* WRLD;
