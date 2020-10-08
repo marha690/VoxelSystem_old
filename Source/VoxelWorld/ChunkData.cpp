@@ -1,3 +1,4 @@
+
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
@@ -294,6 +295,12 @@ FColor ChunkData::GetColor(int LinearIndex)
 		return FColor(96, 128, 56);
 	if (blockType == BlockType::STONE)
 		return FColor(153, 153, 153);
+	if (blockType == BlockType::WOOD)
+		return FColor(89, 60, 31);
+	if (blockType == BlockType::LEAVES)
+		return FColor(144, 238, 144);
+	if (blockType == BlockType::BLUE)
+		return FColor(0, 0, 150);
 
 	return FColor();
 }

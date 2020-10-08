@@ -4,23 +4,12 @@
 
 #include "CoreMinimal.h"
 
-/**
- * 
- */
-
-enum StructureType
-{
-	None = 0,
-	Occupied,
-	Village,
-	Tower,
-	Cabin,
-
-	Num_Structures
-};
+#include "ChunkData.h"
+#include "Structure.h"
 
 struct StructureData {
 	StructureType Type;
+	Structure s;
 };
 
 class VOXELWORLD_API StructuresGenerator
@@ -33,20 +22,16 @@ public:
 	const StructureData& GetData(FVector2D Index);
 	void DeleteGenerationsInSlices(FVector2D PlayerAtSlice);
 
-
 private:
 	int RenderDistance;
-
+	int LevelSize = 6;
 	int seed = 123;
-	int Level1Size = 16;
-	int Level2Size= 8;
-	int Level3Size = 4; 
-
-	TMap<FVector2D, struct StructureData> DataInSlice;
+	TMap<FVector2D, StructureData> DataInSlice;
 	
 	StructureData GenerateData(FVector2D Index);
-	StructureType GetStructureType(FVector2D Index, int Distance, int Level);
-	void GenerateArea(StructureData Data, FVector2D Index);
+	StructureType GetStructureType(FVector2D Index);
 
 	int chash(int x, int y);
 };
+
+

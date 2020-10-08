@@ -15,6 +15,7 @@ namespace VOXEL {
 		WOOD,
 		LEAVES,
 		TREESTART,
+		BLUE
 	};
 }
 using namespace VOXEL;

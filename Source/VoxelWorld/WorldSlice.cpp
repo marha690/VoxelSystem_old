@@ -4,6 +4,7 @@
 #include "WorldSlice.h"
 #include "ChunkData.h"
 #include "WorldGenerator2.h"
+#include "Structure.h"
 
 // Sets default values
 AWorldSlice::AWorldSlice()
@@ -64,45 +65,24 @@ void AWorldSlice::GenerateTerrainFromNoise(int (*f)(int, int))
 
 void AWorldSlice::GenerateStructures()
 {
-	auto data = WorldAsOwner->GetStructureData(SlicePositionIndex);
+	StructureData data = WorldAsOwner->GetStructureData(SlicePositionIndex);
 
-	if (data.Type == StructureType::Village) {
-		for (int i = 0; i < WORLD_PROPERTIES::ChunksInHeight; i++) {
-			chunk[i].setVoxel(VOXEL::STONE, 10, 10, 10);
-			chunk[i].setVoxel(VOXEL::STONE, 10, 9, 10);
-			chunk[i].setVoxel(VOXEL::STONE, 10, 11, 10);
-
-			chunk[i].setVoxel(VOXEL::STONE, 10, 9, 11);
-			chunk[i].setVoxel(VOXEL::STONE, 10, 11, 11);
-			chunk[i].setVoxel(VOXEL::STONE, 10, 9, 12);
-			chunk[i].setVoxel(VOXEL::STONE, 10, 11, 12);
-			chunk[i].setVoxel(VOXEL::STONE, 10, 9, 13);
-			chunk[i].setVoxel(VOXEL::STONE, 10, 11, 13);
-
-			chunk[i].setVoxel(VOXEL::STONE, 10, 10, 14);
-			chunk[i].setVoxel(VOXEL::STONE, 10, 9, 14);
-			chunk[i].setVoxel(VOXEL::STONE, 10, 11, 14);
-		}
-	}
-
-	if (data.Type == StructureType::Tower) {
-		for (int i = 0; i < WORLD_PROPERTIES::ChunksInHeight; i++) {
-			chunk[i].setVoxel(VOXEL::GRASS, 0, 10, 2);
-			chunk[i].setVoxel(VOXEL::GRASS, 0, 10, 3);
-			chunk[i].setVoxel(VOXEL::GRASS, 0, 10, 4);
-			chunk[i].setVoxel(VOXEL::GRASS, 0, 10, 5);
-			chunk[i].setVoxel(VOXEL::GRASS, 0, 10, 6);
-			chunk[i].setVoxel(VOXEL::GRASS, 0, 9, 5);
-		}
-	}
-
-	if (data.Type == StructureType::Cabin) {
+	if (data.s.isStructure) {
+		STRUCTURE::DD Data;
+		bool sucess = data.s.GetChunkData(SlicePositionIndex, Data);
+		if (sucess) {
 
 			for (int x = 0; x < 32; x++)
 				for (int y = 0; y < 32; y++)
 				{
-					chunk[6].setVoxel(VOXEL::STONE, x, y, 0);
+					for (size_t i = 0; i < Data.d[x][y].Num(); i++)
+					{
+						STRUCTURE::Data Voxel = Data.d[x][y][i];
+						int cIndex = Voxel.height / WORLD_PROPERTIES::VoxelsPerChunkDimension;
+						chunk[cIndex].setVoxel(Voxel.voxel, x, y, Voxel.height - cIndex* WORLD_PROPERTIES::VoxelsPerChunkDimension);
+					}
 				}
+		}
 	}
 }
 

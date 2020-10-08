@@ -16,5 +16,4 @@ class VOXELWORLD_API UTerrainNoise : public UObject
 
 public:
 	static int generate2DHeightMap(int x, int y);
-	
 };

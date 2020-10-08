@@ -102,7 +102,7 @@ void AWorldGenerator2::GenerateNewWorldSlices()
 
 void AWorldGenerator2::GenerateTerrainNoise()
 {
-	UTerrainNoise* noise = NewObject<UTerrainNoise>(TerrainNoise);
+	auto noise = Cast<UTerrainNoise>(TerrainNoise);
 
 	// Generate terrain
 	for (int x = -ActiveRenderDistance; x <= ActiveRenderDistance - 1; x++)

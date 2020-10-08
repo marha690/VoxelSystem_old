@@ -13,5 +13,7 @@ UCLASS()
 class VOXELWORLD_API UTNoise2D_V1 : public UTerrainNoise
 {
 	GENERATED_BODY()
+
+		static int generate2DHeightMap(int x, int y);
 	
 };
