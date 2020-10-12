@@ -92,7 +92,6 @@ void AWorldGenerator2::GenerateNewWorldSlices()
 {
 	for (int x = -ActiveRenderDistance - 1; x <= ActiveRenderDistance + 1; x++)
 		for (int y = -ActiveRenderDistance - 1; y <= ActiveRenderDistance + 1; y++) {
-
 			FVector2D WorldSliceIndex = FVector2D(x + PlayerAtSlice.X, y + PlayerAtSlice.Y);
 			if (!DoesWorldSliceExist(WorldSliceIndex)) {
 				GenerateWorldSlice(WorldSliceIndex);

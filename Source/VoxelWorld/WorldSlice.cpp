@@ -71,15 +71,14 @@ void AWorldSlice::GenerateStructures()
 		STRUCTURE::DD Data;
 		bool sucess = data.s.GetChunkData(SlicePositionIndex, Data);
 		if (sucess) {
-
-			for (int x = 0; x < 32; x++)
-				for (int y = 0; y < 32; y++)
+			for (int x = 0; x < WORLD_PROPERTIES::VoxelsPerChunkDimension; x++)
+				for (int y = 0; y < WORLD_PROPERTIES::VoxelsPerChunkDimension; y++)
 				{
 					for (size_t i = 0; i < Data.d[x][y].Num(); i++)
 					{
 						STRUCTURE::Data Voxel = Data.d[x][y][i];
 						int cIndex = Voxel.height / WORLD_PROPERTIES::VoxelsPerChunkDimension;
-						chunk[cIndex].setVoxel(Voxel.voxel, x, y, Voxel.height - cIndex* WORLD_PROPERTIES::VoxelsPerChunkDimension);
+						chunk[cIndex].setVoxel(Voxel.voxel, x, y, Voxel.height - cIndex * WORLD_PROPERTIES::VoxelsPerChunkDimension);
 					}
 				}
 		}

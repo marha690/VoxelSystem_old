@@ -22,9 +22,28 @@ StructuresGenerator::~StructuresGenerator()
 
 const StructureData& StructuresGenerator::GetData(FVector2D Index)
 {
-	int lvX = 20 + abs((int)Index.X) - abs((int)Index.X) % LevelSize;
-	int lvY = 20 + abs((int)Index.Y) - abs((int)Index.Y) % LevelSize;
-	FVector2D indexSquish = FVector2D(lvX, lvY);
+	int xMod = abs((int)Index.X) % LevelSize;
+	int yMod = abs((int)Index.Y) % LevelSize;
+
+	int lvX = 0;
+	int lvY = 0;
+	if (Index.X >= 0)
+		lvX = Index.X - xMod;
+	else {
+		Index.X += 1;
+		xMod = abs((int)Index.X) % LevelSize;
+		lvX = Index.X + xMod - 4;
+	}
+
+	if (Index.Y >= 0)
+		lvY = Index.Y - yMod;
+	else {
+		Index.Y += 1;
+		yMod = abs((int)Index.Y) % LevelSize;
+		lvY = Index.Y + yMod - 4;
+	}
+
+	FVector2D indexSquish = FVector2D((int)lvX, (int)lvY);
 	if (!DataInSlice.Contains(indexSquish)) {
 		StructureData newData = GenerateData(indexSquish);
 		DataInSlice.Add(indexSquish, newData);

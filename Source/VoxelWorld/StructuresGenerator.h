@@ -24,7 +24,7 @@ public:
 
 private:
 	int RenderDistance;
-	int LevelSize = 6;
+	int LevelSize = 4;
 	int seed = 123;
 	TMap<FVector2D, StructureData> DataInSlice;
 	
