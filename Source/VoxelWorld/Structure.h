@@ -17,7 +17,7 @@ enum StructureType
 };
 
 namespace STRUCTURE {
-	struct Data { int height; VOXEL::BlockType voxel; };
+	struct Data { int height; VOXEL::VoxelData voxel; };
 	struct DD { TArray<Data> d[WORLD_PROPERTIES::VoxelsPerChunkDimension][WORLD_PROPERTIES::VoxelsPerChunkDimension]; };
 }
 using namespace STRUCTURE;
@@ -33,7 +33,7 @@ public:
 	bool isStructure = false;
 private:
 	void Generate();
-	void SetVoxel(VOXEL::BlockType voxel, int X, int Y, int Z);
+	void SetVoxel(VOXEL::VoxelData voxel, int X, int Y, int Z);
 	void GenerateVillage();
 
 	StructureType Type;

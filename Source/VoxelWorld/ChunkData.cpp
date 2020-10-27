@@ -33,7 +33,7 @@ void ChunkData::UpdateMeshData()
 		for (int X = 0; X < WORLD_PROPERTIES::VoxelsPerChunkDimension; X++)
 			for (int Z = 0; Z < WORLD_PROPERTIES::VoxelsPerChunkDimension; Z++) {
 
-				if (!IsSolid(bType[linearIndex(X, Y, Z)])) continue;
+				if (!IsSolid(Voxels[linearIndex(X, Y, Z)].bType)) continue;
 
 				FVector voxelPos = FVector(X, Y, Z);
 				if (!HasSolidNeighbour(voxelPos.X - 1, voxelPos.Y, voxelPos.Z))
@@ -220,10 +220,18 @@ bool ChunkData::HasSolidNeighbour(int x, int y, int z)
 	return IsSolid(v);
 }
 
-void ChunkData::setVoxel(VOXEL::BlockType v, int x, int y, int z)
+//void ChunkData::setVoxel(VOXEL::BlockType v, int x, int y, int z)
+//{
+//	int index = linearIndex(x, y, z);
+//	Voxels[index].bType = v;
+//	Voxels[index].colorID = 0;
+//	SliceAsOwner->isRendered = false;
+//}
+
+void ChunkData::setVoxel(VOXEL::VoxelData vd, int x, int y, int z)
 {
 	int index = linearIndex(x, y, z);
-	bType[index] = v;
+	Voxels[index] = vd;
 	SliceAsOwner->isRendered = false;
 }
 
@@ -277,19 +285,24 @@ BlockType& ChunkData::getVoxel(int x, int y, int z)
 
 		if (slice) {
 			int listIndex = linearIndex(x, y, z);
-			return slice->chunk[ZPos].bType[listIndex];
+			return slice->chunk[ZPos].Voxels[listIndex].bType;
 		}
 
 	}
 
 	// Inside this chunk
 	int index = linearIndex(x, y, z);
-	return bType[index];
+	return Voxels[index].bType;
 }
 
 FColor ChunkData::GetColor(int LinearIndex)
 {
-	auto blockType = bType[LinearIndex];
+	auto blockType = Voxels[LinearIndex].bType;
+
+	if (blockType == BlockType::UNDETAILED) {
+		auto colorID = Voxels[LinearIndex].colorID;
+		return FColor(default_palette[colorID]);
+	}
 
 	if (blockType == BlockType::GRASS)
 		return FColor(96, 128, 56);

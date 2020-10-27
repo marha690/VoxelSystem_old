@@ -80,7 +80,7 @@ void Structure::Generate()
 	}
 }
 
-void Structure::SetVoxel(VOXEL::BlockType voxel, int X, int Y, int Z) {
+void Structure::SetVoxel(VOXEL::VoxelData voxel, int X, int Y, int Z) {
 	int _X = X / WORLD_PROPERTIES::VoxelsPerChunkDimension;
 	int _Y = Y / WORLD_PROPERTIES::VoxelsPerChunkDimension;
 
@@ -101,7 +101,8 @@ void Structure::GenerateVillage()
 	int n = v.voxels.size();
 	for (size_t i = 0; i < n; i++) {
 		auto vox = v.voxels[i];
-		SetVoxel(VOXEL::BLUE, 10 + vox.first.X, 10 + vox.first.Y, 80 + vox.first.Z);
+
+		SetVoxel({ BlockType::UNDETAILED, vox.second }, 10 + vox.first.X, 10 + vox.first.Y, 80 + vox.first.Z);
 	}
 
 
@@ -110,16 +111,16 @@ void Structure::GenerateVillage()
 	{
 		int h = UTerrainNoise::generate2DHeightMap(x, 0);
 
-		SetVoxel(VOXEL::STONE, x, BlocksDimension - 1, 80);
-		SetVoxel(VOXEL::STONE, x, BlocksDimension - 2, 80);
-		SetVoxel(VOXEL::STONE, x, 0, 80);
-		SetVoxel(VOXEL::STONE, x, 1, 80);
+		SetVoxel({ BlockType::STONE, 0 }, x, BlocksDimension - 1, 80);
+		SetVoxel({ BlockType::STONE, 0 }, x, BlocksDimension - 2, 80);
+		SetVoxel({ BlockType::STONE, 0 }, x, 0, 80);
+		SetVoxel({ BlockType::STONE, 0 }, x, 1, 80);
 	}
 	for (size_t y = 0; y < BlocksDimension; y++)
 	{
-		SetVoxel(VOXEL::STONE, BlocksDimension - 1, y, 80);
-		SetVoxel(VOXEL::STONE, BlocksDimension - 2, y, 80);
-		SetVoxel(VOXEL::STONE, 0, y, 80);
-		SetVoxel(VOXEL::STONE, 1, y, 80);
+		SetVoxel({ BlockType::STONE, 0 }, BlocksDimension - 1, y, 80);
+		SetVoxel({ BlockType::STONE, 0 }, BlocksDimension - 2, y, 80);
+		SetVoxel({ BlockType::STONE, 0 }, 0, y, 80);
+		SetVoxel({ BlockType::STONE, 0 }, 1, y, 80);
 	}
 }

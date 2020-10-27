@@ -52,10 +52,9 @@ void AWorldSlice::GenerateTerrainFromNoise(int (*f)(int, int))
 				while (h > c + i * WORLD_PROPERTIES::VoxelsPerChunkDimension && c < WORLD_PROPERTIES::VoxelsPerChunkDimension)
 				{
 					if (h > c + 3)
-						chunk[i].setVoxel(VOXEL::STONE, x, y, (c % WORLD_PROPERTIES::VoxelsPerChunkDimension));
+						chunk[i].setVoxel(VOXEL::VoxelData{ VOXEL::STONE, 0 }, x, y, (c % WORLD_PROPERTIES::VoxelsPerChunkDimension));
 					else 
-						chunk[i].setVoxel(VOXEL::GRASS, x, y, (c % WORLD_PROPERTIES::VoxelsPerChunkDimension));
-
+						chunk[i].setVoxel(VOXEL::VoxelData{ VOXEL::GRASS, 0 }, x, y, (c % WORLD_PROPERTIES::VoxelsPerChunkDimension));
 
 					++c;
 				}
