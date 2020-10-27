@@ -2,6 +2,8 @@
 
 
 #include "Structure.h"
+#include "TerrainNoise.h"
+#include "VoxFormatReader.h"
 
 Structure::Structure(StructureType T, int chunkDistance)
 {
@@ -95,8 +97,19 @@ void Structure::SetVoxel(VOXEL::BlockType voxel, int X, int Y, int Z) {
 
 void Structure::GenerateVillage()
 {
+	auto v = VoxFormatReader("treeA.vox");
+	int n = v.voxels.size();
+	for (size_t i = 0; i < n; i++) {
+		auto vox = v.voxels[i];
+		SetVoxel(VOXEL::BLUE, 10 + vox.first.X, 10 + vox.first.Y, 80 + vox.first.Z);
+	}
+
+
+	//Borders of the village!
 	for (size_t x = 0; x < BlocksDimension; x++)
 	{
+		int h = UTerrainNoise::generate2DHeightMap(x, 0);
+
 		SetVoxel(VOXEL::STONE, x, BlocksDimension - 1, 80);
 		SetVoxel(VOXEL::STONE, x, BlocksDimension - 2, 80);
 		SetVoxel(VOXEL::STONE, x, 0, 80);
