@@ -32,7 +32,7 @@ const StructureData& StructuresGenerator::GetData(FVector2D Index)
 	else {
 		Index.X += 1;
 		xMod = abs((int)Index.X) % LevelSize;
-		lvX = Index.X + xMod - 4;
+		lvX = Index.X + xMod - LevelSize;
 	}
 
 	if (Index.Y >= 0)
@@ -40,7 +40,7 @@ const StructureData& StructuresGenerator::GetData(FVector2D Index)
 	else {
 		Index.Y += 1;
 		yMod = abs((int)Index.Y) % LevelSize;
-		lvY = Index.Y + yMod - 4;
+		lvY = Index.Y + yMod - LevelSize;
 	}
 
 	FVector2D indexSquish = FVector2D((int)lvX, (int)lvY);
@@ -71,7 +71,7 @@ void StructuresGenerator::DeleteGenerationsInSlices(FVector2D PlayerAtSlice)
 StructureData StructuresGenerator::GenerateData(FVector2D Index)
 {
 	StructureType t = GetStructureType(Index);
-	StructureData data{ t , Structure(t,LevelSize)};
+	StructureData data{ t , Structure(t,LevelSize, Index)};
 	return data;
 }
 
@@ -83,12 +83,12 @@ StructureType StructuresGenerator::GetStructureType(FVector2D Index)
 
 	int id = rand % maxRandomValue;
 
-	if (id < 10)
-		return StructureType::Cabin;
-	if (id < 20)
+	//if (id < 10)
+	//	return StructureType::Cabin;
+	if (id > 10 && id < 20)
 		return StructureType::Village;
-	if (id < 30)
-		return StructureType::Tower;
+	//if (id < 30)
+	//	return StructureType::Tower;
 
 	return StructureType::None;
 }

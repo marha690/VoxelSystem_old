@@ -216,7 +216,7 @@ void ChunkData::AddTriangle(int32 V1, int32 V2, int32 V3)
 
 bool ChunkData::HasSolidNeighbour(int x, int y, int z)
 {
-	BlockType v = getVoxel(x, y, z).bType;
+	BlockType v = getVoxel(x, y, z);
 	return IsSolid(v);
 }
 
@@ -230,14 +230,12 @@ bool ChunkData::HasSolidNeighbour(int x, int y, int z)
 
 void ChunkData::setVoxel(VOXEL::VoxelData vd, int x, int y, int z)
 {
-	getVoxel(x, y, z) = vd;
-	
-	//int index = linearIndex(x, y, z);
-	//Voxels[index] = vd;
+	int index = linearIndex(x, y, z);
+	Voxels[index] = vd;
 	SliceAsOwner->isRendered = false;
 }
 
-VoxelData& ChunkData::getVoxel(int x, int y, int z)
+BlockType& ChunkData::getVoxel(int x, int y, int z)
 {
 	int Dimensions = WORLD_PROPERTIES::VoxelsPerChunkDimension;
 
@@ -287,14 +285,14 @@ VoxelData& ChunkData::getVoxel(int x, int y, int z)
 
 		if (slice) {
 			int listIndex = linearIndex(x, y, z);
-			return slice->chunk[ZPos].Voxels[listIndex];
+			return slice->chunk[ZPos].Voxels[listIndex].bType;
 		}
 
 	}
 
 	// Inside this chunk
 	int index = linearIndex(x, y, z);
-	return Voxels[index];
+	return Voxels[index].bType;
 }
 
 FColor ChunkData::GetColor(int LinearIndex)

@@ -24,6 +24,7 @@ public:
 
 	bool isTerrainGenerated = false;
 	bool isRendered = false;
+	bool isObjectsGenerated = false;
 protected:
 
 	// Called when the game starts or when spawned
@@ -33,6 +34,7 @@ public:
 
 	void GenerateTerrainFromNoise( int (*f)(int, int));
 	void GenerateStructures();
+	void GenerateObjects();
 	void RenderChunks();
 
 	FVector2D SlicePositionIndex; // Chunk based coordinate system.
@@ -41,5 +43,11 @@ public:
 	ChunkData chunk[WORLD_PROPERTIES::ChunksInHeight];
 private:
 	UProceduralMeshComponent* CustomMesh;
+
+	int chash(int x, int y, int seed) {
+		int h = seed + x * 374761393 + y * 668265263; //all constants are prime
+		h = (h ^ (h >> 13)) * 1274126177;
+		return h ^ (h >> 16);
+	}
 
 };

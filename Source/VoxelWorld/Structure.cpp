@@ -5,13 +5,16 @@
 #include "TerrainNoise.h"
 #include "VoxFormatReader.h"
 
-Structure::Structure(StructureType T, int chunkDistance)
+#include "TerrainNoise.h"
+
+Structure::Structure(StructureType T, int chunkDistance, FVector2D globalIndex)
 {
 	if (T != StructureType::None) {
 		isStructure = true;
 		ChunksDimension = chunkDistance;
 		BlocksDimension = ChunksDimension * WORLD_PROPERTIES::VoxelsPerChunkDimension;
 		Type = T;
+		GlobalIndex = globalIndex;
 		Generate();
 	}
 }
@@ -97,30 +100,42 @@ void Structure::SetVoxel(VOXEL::VoxelData voxel, int X, int Y, int Z) {
 
 void Structure::GenerateVillage()
 {
-	auto v = VoxFormatReader("treeA.vox");
+	auto v = VoxFormatReader("testHouse.vox");
 	int n = v.voxels.size();
+
+	int startheight = UTerrainNoise::generate2DHeightMap(GlobalIndex.X * WORLD_PROPERTIES::VoxelsPerChunkDimension + 50, GlobalIndex.Y * WORLD_PROPERTIES::VoxelsPerChunkDimension + 50);
 	for (size_t i = 0; i < n; i++) {
 		auto vox = v.voxels[i];
-
-		SetVoxel({ BlockType::UNDETAILED, vox.second }, 10 + vox.first.X, 10 + vox.first.Y, 80 + vox.first.Z);
+		SetVoxel({ BlockType::UNDETAILED, vox.second }, 50 - vox.first.X, 50 - vox.first.Y, startheight + vox.first.Z);
 	}
 
-
-	//Borders of the village!
-	for (size_t x = 0; x < BlocksDimension; x++)
-	{
-		int h = UTerrainNoise::generate2DHeightMap(x, 0);
-
-		SetVoxel({ BlockType::STONE, 0 }, x, BlocksDimension - 1, 80);
-		SetVoxel({ BlockType::STONE, 0 }, x, BlocksDimension - 2, 80);
-		SetVoxel({ BlockType::STONE, 0 }, x, 0, 80);
-		SetVoxel({ BlockType::STONE, 0 }, x, 1, 80);
+	startheight = UTerrainNoise::generate2DHeightMap(GlobalIndex.X * WORLD_PROPERTIES::VoxelsPerChunkDimension + 80, GlobalIndex.Y * WORLD_PROPERTIES::VoxelsPerChunkDimension + 50);
+	for (size_t i = 0; i < n; i++) {
+		auto vox = v.voxels[i];
+		SetVoxel({ BlockType::UNDETAILED, vox.second }, 80 + vox.first.X, 50 + vox.first.Y, startheight + vox.first.Z);
 	}
-	for (size_t y = 0; y < BlocksDimension; y++)
-	{
-		SetVoxel({ BlockType::STONE, 0 }, BlocksDimension - 1, y, 80);
-		SetVoxel({ BlockType::STONE, 0 }, BlocksDimension - 2, y, 80);
-		SetVoxel({ BlockType::STONE, 0 }, 0, y, 80);
-		SetVoxel({ BlockType::STONE, 0 }, 1, y, 80);
+
+	startheight = UTerrainNoise::generate2DHeightMap(GlobalIndex.X * WORLD_PROPERTIES::VoxelsPerChunkDimension + 70, GlobalIndex.Y * WORLD_PROPERTIES::VoxelsPerChunkDimension + 70);
+	for (size_t i = 0; i < n; i++) {
+		auto vox = v.voxels[i];
+		SetVoxel({ BlockType::UNDETAILED, vox.second }, 70 - vox.first.Y, 70 + vox.first.X, startheight + vox.first.Z);
 	}
+
+	////Borders of the village!
+	//for (size_t x = 0; x < BlocksDimension; x++)
+	//{
+	//	int h = UTerrainNoise::generate2DHeightMap(x, 0);
+
+	//	SetVoxel({ BlockType::STONE, 0 }, x, BlocksDimension - 1, 80);
+	//	SetVoxel({ BlockType::STONE, 0 }, x, BlocksDimension - 2, 80);
+	//	SetVoxel({ BlockType::STONE, 0 }, x, 0, 80);
+	//	SetVoxel({ BlockType::STONE, 0 }, x, 1, 80);
+	//}
+	//for (size_t y = 0; y < BlocksDimension; y++)
+	//{
+	//	SetVoxel({ BlockType::STONE, 0 }, BlocksDimension - 1, y, 80);
+	//	SetVoxel({ BlockType::STONE, 0 }, BlocksDimension - 2, y, 80);
+	//	SetVoxel({ BlockType::STONE, 0 }, 0, y, 80);
+	//	SetVoxel({ BlockType::STONE, 0 }, 1, y, 80);
+	//}
 }

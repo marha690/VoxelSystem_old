@@ -6,6 +6,7 @@
 #include "WorldSlice.h"
 #include "WorldProperties.h"
 #include "TerrainNoise.h"
+#include "WorldProperties.h"
 
 // Sets default values
 AWorldGenerator2::AWorldGenerator2()
@@ -113,6 +114,17 @@ void AWorldGenerator2::GenerateTerrainNoise()
 				WorldSlices[WorldSliceIndex]->GenerateTerrainFromNoise(noise->generate2DHeightMap);
 				WorldSlices[WorldSliceIndex]->GenerateStructures();
 				break;
+			}
+		}
+
+
+	// Generate trees?
+	for (int x = -ActiveRenderDistance + 1; x <= ActiveRenderDistance - 2; x++)
+		for (int y = -ActiveRenderDistance + 1; y <= ActiveRenderDistance - 2; y++) {
+			FVector2D WorldSliceIndex = FVector2D(x + PlayerAtSlice.X, y + PlayerAtSlice.Y);
+
+			if (DoesWorldSliceExist(WorldSliceIndex)) {
+					WorldSlices[WorldSliceIndex]->GenerateObjects();
 			}
 		}
 

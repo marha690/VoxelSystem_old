@@ -26,7 +26,7 @@ class Structure
 {
 private:
 public:
-	Structure(StructureType T, int ChunkDistance);
+	Structure(StructureType T, int ChunkDistance, FVector2D globalIndex);
 	~Structure();
 	bool GetChunkData(FVector2D Index, DD& ChunkData);
 
@@ -39,6 +39,7 @@ private:
 	StructureType Type;
 	int ChunksDimension = 0;
 	int BlocksDimension = 0;
+	FVector2D GlobalIndex;
 
 	TMap < FVector2D, DD> Chunks;
 };

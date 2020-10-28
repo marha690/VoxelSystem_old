@@ -66,7 +66,7 @@ public:
 	//void setVoxel(VOXEL::BlockType v, int x, int y, int z);
 	void setVoxel(VOXEL::VoxelData vd, int x, int y, int z);
 
-	VoxelData& getVoxel(int x, int y, int z);
+	BlockType& getVoxel(int x, int y, int z);
 
 	FColor GetColor(int LinearIndex);
 	int ConvertVoxelToLocal(int i);
@@ -76,7 +76,7 @@ public:
 
 private:
 	VOXEL::VoxelData Voxels[WORLD_PROPERTIES::VoxelsInChunk]{ VOXEL::AIR }; //data in chunk
-	VoxelData blockade = { VOXEL::BLOCKADE, 0};
+	BlockType blockade = VOXEL::BLOCKADE;
 
 	unsigned int default_palette[256] = {
 	0x00000000, 0xffffffff, 0xffccffff, 0xff99ffff, 0xff66ffff, 0xff33ffff, 0xff00ffff, 0xffffccff, 0xffccccff, 0xff99ccff, 0xff66ccff, 0xff33ccff, 0xff00ccff, 0xffff99ff, 0xffcc99ff, 0xff9999ff,

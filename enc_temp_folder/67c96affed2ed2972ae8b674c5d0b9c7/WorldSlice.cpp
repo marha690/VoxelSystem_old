@@ -89,14 +89,14 @@ void AWorldSlice::GenerateStructures()
 	else {
 		//Trees
 		if (!isObjectsGenerated) {
-			auto v = VoxFormatReader("treeA.vox");
+			auto v = VoxFormatReader("treeB.vox");
 			int n = v.voxels.size();
 
 			int xS = chash(SlicePositionIndex.X, SlicePositionIndex.Y, 123);
 			int yS = chash(SlicePositionIndex.X, SlicePositionIndex.Y, 124);
 
-			xS = (xS % 16) + 16;
-			yS = (yS % 16) + 16;
+			xS = (xS % 4) + 16;
+			yS = (yS % 4) + 16;
 
 			int startheight = UTerrainNoise::generate2DHeightMap(SlicePositionIndex.X * WORLD_PROPERTIES::VoxelsPerChunkDimension + xS,
 																 SlicePositionIndex.Y * WORLD_PROPERTIES::VoxelsPerChunkDimension + yS);
