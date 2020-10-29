@@ -231,9 +231,6 @@ bool ChunkData::HasSolidNeighbour(int x, int y, int z)
 void ChunkData::setVoxel(VOXEL::VoxelData vd, int x, int y, int z)
 {
 	getVoxel(x, y, z) = vd;
-	
-	//int index = linearIndex(x, y, z);
-	//Voxels[index] = vd;
 	SliceAsOwner->isRendered = false;
 }
 
@@ -303,7 +300,11 @@ FColor ChunkData::GetColor(int LinearIndex)
 
 	if (blockType == BlockType::UNDETAILED) {
 		auto colorID = Voxels[LinearIndex].colorID;
-		return FColor(default_palette[colorID]);
+
+		if(SliceAsOwner->WorldAsOwner->hasColorAtlas)
+			return SliceAsOwner->WorldAsOwner->colorAtlas[colorID - 1];
+		else
+			return FColor(default_palette[colorID - 1]);
 	}
 
 	if (blockType == BlockType::GRASS)

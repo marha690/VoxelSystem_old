@@ -42,9 +42,14 @@ public:
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<UTerrainNoise> TerrainNoise;
 
+	UPROPERTY(EditAnywhere)
+		UTexture2D* defaultAtlas_UTexture2D;
+
 	AWorldSlice* GetWorldSlice(FVector2D WSI);
 	const StructureData& GetStructureData(FVector2D Index);
 
+	TArray<FColor> colorAtlas;
+	bool hasColorAtlas = false;
 private:
 	UWorld* WRLD;
 
@@ -56,7 +61,9 @@ private:
 	FVector2D PlayerAtSlice;
 	FVector2D OldPlayerAtSlice;
 
+
 private:
+	void readTexute();
 	bool HasPlayerCrossedChunks();
 	void DeleteUnnecessaryWorldSlices();
 

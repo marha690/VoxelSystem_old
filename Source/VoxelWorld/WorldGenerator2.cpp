@@ -25,6 +25,7 @@ void AWorldGenerator2::BeginPlay()
 	verify(WRLD != nullptr);
 	
 	StructureGen = StructuresGenerator(renderDistance);
+	readTexute();
 }
 
 // Called every frame
@@ -63,6 +64,53 @@ AWorldSlice* AWorldGenerator2::GetWorldSlice(FVector2D WSI)
 const StructureData& AWorldGenerator2::GetStructureData(FVector2D Index)
 {
 	return StructureGen.GetData(Index);
+}
+
+void AWorldGenerator2::readTexute()
+{
+	if (!defaultAtlas_UTexture2D) {
+		//TODO. Use basic texture atlas.
+		hasColorAtlas = false;
+		return;
+	}
+
+	int TextureInFileSize = defaultAtlas_UTexture2D->GetSizeX(); //the width of the texture
+	colorAtlas.Init(FColor(0, 0, 0, 255), TextureInFileSize * TextureInFileSize);//making sure it has something, and sizing the array n*n
+	//init TArray
+	//What i want to do is take all the values from Texture File ->to-> TArray of FColors
+	if (!defaultAtlas_UTexture2D) {
+		//Many times i forgot to load the texture in the editor so every time i hit play the editor crashed
+		UE_LOG(LogTemp, Error, TEXT("Missing texture in LevelInfo, please load the mask!"));
+		return; //<---if textureInFile is missing stop execution of the code
+	}
+	if (defaultAtlas_UTexture2D != nullptr) {
+		UE_LOG(LogTemp, Warning, TEXT("Texture in file is :  %d  pixels wide"), TextureInFileSize);
+
+		FTexture2DMipMap& Mip = defaultAtlas_UTexture2D->PlatformData->Mips[0];//A reference 
+		void* Data = Mip.BulkData.Lock(LOCK_READ_WRITE);
+		uint8* raw = NULL;
+		raw = (uint8*)Data;
+
+		FColor pixel = FColor(0, 0, 0, 255);//used for spliting the data stored in raw form
+
+		//the usual nested loop for reading the pixels
+		for (int y = 0; y < TextureInFileSize; y++) {
+
+			for (int x = 0; x < TextureInFileSize; x++) {
+				//data in the raw var is serialized i think ;)
+				//so a pixel is four consecutive numbers e.g 0,0,0,255
+				//and the following code split the values in single components and store them in a FColor
+				pixel.B = raw[4 * (TextureInFileSize * y + x) + 0];
+				pixel.G = raw[4 * (TextureInFileSize * y + x) + 1];
+				pixel.R = raw[4 * (TextureInFileSize * y + x) + 2];
+				//And then this code iterates over the TArray of FColors and stores them
+				colorAtlas[x + y * TextureInFileSize] = FColor((uint8)pixel.R, (uint8)pixel.G, (uint8)pixel.B, 255);
+			}
+		}
+		Mip.BulkData.Unlock();
+		defaultAtlas_UTexture2D->UpdateResource();
+	}
+	hasColorAtlas = true;
 }
 
 bool AWorldGenerator2::HasPlayerCrossedChunks()
